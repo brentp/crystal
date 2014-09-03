@@ -1,10 +1,10 @@
 crystal
 -------
 
-A framework to evaulate methylation modeling strategies
+A framework to evaluate methylation modeling strategies
 
-quickstart
-----------
+quick-start
+-----------
 
 All functions to model clusters take:
 
@@ -40,6 +40,16 @@ for cluster in crystal.model_clusters(cluster_iter, covs_df,
 ```
 
 See the [introduction notebook TODO](nbviewer.org) for more detail
+
+Installation
+------------
+
+users unaccustomed to installing their own python packages should
+download [anaconda](https://store.continuum.io/cshop/anaconda/) and
+then install additional modules with `pip`.
+
+Running `python setup.py install` should work on systems with the
+scientific python stack.
 
 How
 ---

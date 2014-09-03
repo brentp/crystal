@@ -140,7 +140,7 @@ def wrapper(model_fn, model_str, cluster, clin_df, coef, kwargs):
 
 # function for comparing with bump_cluster
 # takes the return value of _combine_cluster and returns a single numeric value
-def coef_sum(c, cutoff=0.015):
+def coef_sum(c, cutoff=0.005):
     coefs = c['coef']
     return sum(min(0, c + cutoff) if c < 0 else max(0, c - cutoff) for c in coefs)
 
@@ -188,6 +188,7 @@ def bump_cluster(model_str, methylations, covs, coef, nsims=100000,
         if ngt > 5: break
 
     p = (1.0 + ngt) / (2.0 + isim) # extra 1 in denom for 0-index
+    orig.pop('corr')
     orig['p'] = p
     orig['coef'], orig['t'] = orig['coef'].mean(), orig['t'].mean()
     return orig
