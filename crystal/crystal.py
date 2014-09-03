@@ -133,8 +133,9 @@ def wrapper(model_fn, model_str, cluster, clin_df, coef, kwargs):
     r['start'] = cluster[0].position - 1
     r['end'] = cluster[-1].position
     r['n_sites'] = len(cluster)
-    r['sites'] = ",".join(c.spos for c in cluster)
+    r['sites'] = [c.spos for c in cluster]
     r['var'] = coef
+    r['cluster'] = cluster
     return r
 
 
