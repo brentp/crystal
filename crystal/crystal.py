@@ -57,10 +57,9 @@ def mixed_model_cluster(formula, methylation, covs, coef):
     cov_rep['CpG'] = np.repeat(['CpG_%i' % i for i in range(methylation.shape[0])],
                         methylation.shape[1])
     cov_rep['methylation'] = np.concatenate(methylation)
-    #cov2 = cov_rep[['id', 'CpG', 'methylation', 'age', 'gender', 'asthma']].to_csv('/tmp/m.csv', index=False)
 
     res = MixedLM.from_formula(formula, groups='id', data=cov_rep).fit()
-    #res = res.fit() #free=(np.ones(res.k_fe), np.eye(res.k_re)))
+
     return get_ptc(res, coef)
 
 def get_ptc(fit, coef):
@@ -90,7 +89,6 @@ def _combine_cluster(formula, methylations, covs, coef, robust=False):
     """function called by z-score and liptak to get pvalues"""
     res = [(RLM if robust else GLS).from_formula(formula, covs).fit()
         for methylation in methylations]
-
     idx = [i for i, par in enumerate(res[0].model.exog_names)
                    if par.startswith(coef)][0]
     pvals = np.array([r.pvalues[idx] for r in res], dtype=np.float64)
@@ -215,7 +213,7 @@ class Feature(object):
 
     def is_correlated(self, other):
         rho, p = ss.spearmanr(self.values, other.values)
-        return rho > 0.7
+        return rho > 0.5
 
     def __repr__(self):
         return "Feature({spos})".format(spos=self.spos)

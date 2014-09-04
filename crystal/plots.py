@@ -22,9 +22,13 @@ def _plot_dichotomous(feature, var, ax, normed=False):
 
     ax.hist(xvals, alpha=0.8, color=colors[:len(cats)], label=list(cats), normed=normed)
 
+def is_dichotomous(col):
+    dichotomous = not np.issubdtype(col, float) or len(col.unique()) == 2
+    return dichotomous
+
 def plot_cluster(cluster, covs, normed=False):
 
-    dichotomous = not np.issubdtype(covs[cluster['var']], float) or len(covs[cluster['var']].unique()) == 2
+    dichotomous = is_dichotomous(covs[cluster['var']])
     fig, axs = plt.subplots(cluster['n_sites'], sharey=not dichotomous)
 
     for i, f in enumerate(cluster['cluster']):
@@ -47,3 +51,46 @@ def plot_cluster(cluster, covs, normed=False):
     if dichotomous:
         axs[0].legend()
     return fig, axs
+
+
+def barplot_cluster(cluster, covs, normed=False, n_bins=50):
+    # this only works for 2-class data.
+    group = np.array(covs[cluster['var']])
+    grps = sorted(np.unique(group))
+    assert len(grps) == 2
+
+    fig, ax = plt.subplots(1)
+
+    # get min and max for all features so we can use same scale.
+    dmin = min(f.values.min() for f in cluster['cluster'])
+    dmax = max(f.values.max() for f in cluster['cluster'])
+
+    for i, feature in enumerate(cluster['cluster']):
+        g0 = ilogit(feature.values[group == grps[0]])
+        g1 = ilogit(feature.values[group == grps[1]])
+
+        shape0 = half_horizontal_bar(g0, i , ax, True,
+                                     dmin=dmin, dmax=dmax, facecolor=colors[0], n_bins=n_bins)
+        shape1 = half_horizontal_bar(g1, i, ax, False,
+                                     dmin=dmin, dmax=dmax, facecolor=colors[1], n_bins=n_bins)
+    ax.set_xticks(range(len(cluster['cluster'])))
+    ax.set_xticklabels([f.position for f in cluster['cluster']])
+    ax.legend((shape0, shape1),
+            ("%s - %s" % (cluster['var'], grps[0]),
+            ("%s - %s" % (cluster['var'], grps[1]))))
+
+
+def half_horizontal_bar(data, pos, ax, left=False, dmin=0, dmax=1, n_bins=70, **kwargs):
+
+    bins = np.linspace(dmin, dmax, n_bins + 1)
+    counts, edges = np.histogram(data, bins=bins, density=True)
+    counts = (0 + counts)
+
+    bsize = edges[1] - edges[0]
+    counts /= (2.5 * float(counts.max()))
+
+    if left:
+        counts *= -1
+
+    pos += (-0.0002 if left else 0.0002)
+    return ax.barh(edges[:n_bins], counts, bsize, left=pos, **kwargs)[0]
