@@ -38,27 +38,45 @@ def one_cluster(formula, methylation, covs, coef, robust=True):
     res = (RLM if robust else GLS).from_formula(formula, data=c).fit()
     return get_ptc(res, coef)
 
-def gee_cluster(formula, methylation, covs, coef, cov_struct=Exchangeable(),
-        family=Gaussian()):
-    cov_rep = pd.concat((covs for i in range(len(methylation))))
-    nr, nc = methylation.shape
-    cov_rep['CpG'] = np.repeat(['CpG_%i' % i for i in range(methylation.shape[0])],
-                        methylation.shape[1])
-    cov_rep['methylation'] = np.concatenate(methylation)
-
-    res = GEE.from_formula(formula, groups=cov_rep['id'], data=cov_rep, cov_struct=cov_struct).fit()
-    return get_ptc(res, coef)
-
-def mixed_model_cluster(formula, methylation, covs, coef):
-    """TODO."""
+def long_covs(covs, methylation):
     covs['id'] = ['id_%i' % i for i in range(len(covs))]
     cov_rep = pd.concat((covs for i in range(len(methylation))))
     nr, nc = methylation.shape
-    cov_rep['CpG'] = np.repeat(['CpG_%i' % i for i in range(methylation.shape[0])],
-                        methylation.shape[1])
+    cov_rep['CpG'] = np.repeat(['CpG_%i' % i for i in range(nr)], nc)
     cov_rep['methylation'] = np.concatenate(methylation)
+    return cov_rep
 
-    res = MixedLM.from_formula(formula, groups='id', data=cov_rep).fit()
+def gee_cluster(formula, methylation, covs, coef, cov_struct=Exchangeable(),
+        family=Gaussian()):
+    cov_rep = long_covs(covs, methylation)
+    res = GEE.from_formula(formula, groups=cov_rep['id'], data=cov_rep, cov_struct=cov_struct).fit()
+    return get_ptc(res, coef)
+
+# see: https://gist.github.com/josef-pkt/89585d0b084739a4ed1c
+def ols_cluster_robust(formula, methylation, covs, coef):
+    cov_rep = long_covs(covs, methylation)
+    res = OLS.from_formula(formula, data=cov_rep).fit(cov_type='cluster',
+            cov_kwds=dict(groups=cov_rep['id']))
+    return get_ptc(res, coef)
+
+def gls_cluster(formula, methylation, covs, coef):
+    # TODO: currently this is very, very slow
+    cov_rep = long_covs(covs, methylation)
+    z = np.cov(methylation.T)
+    sigma = np.repeat(np.repeat(z, len(methylation), axis=0), len(methylation), axis=1)
+    res = GLS.from_formula(formula, data=cov_rep, sigma=sigma)
+    return get_ptc(res, coef)
+
+def mixed_model_cluster(formula, methylation, covs, coef):
+    """Mixed-Effects Model"""
+    cov_rep = long_covs(covs, methylation)
+    # TODO: remove this once newer version of statsmodels is out.
+    # speeds convergence by using fixed estimates from OLS
+    params = OLS.from_formula(formula, data=cov_rep).fit().params
+
+    res = MixedLM.from_formula(formula, groups='id',
+            data=cov_rep).fit(start_params=dict(fe=params), reml=False,
+                    method='bfgs')
 
     return get_ptc(res, coef)
 
@@ -204,7 +222,7 @@ class Feature(object):
     __slots__ = "chrom position values spos".split()
 
     def __init__(self, chrom, pos, values):
-        self.chrom, self.position, self.values = chrom, pos, np.array(values)
+        self.chrom, self.position, self.values = chrom, pos, np.asarray(values)
         self.spos = "%s:%i" % (chrom, pos)
 
     def distance(self, other):
@@ -213,7 +231,7 @@ class Feature(object):
 
     def is_correlated(self, other):
         rho, p = ss.spearmanr(self.values, other.values)
-        return rho > 0.5
+        return rho > 0.7
 
     def __repr__(self):
         return "Feature({spos})".format(spos=self.spos)
