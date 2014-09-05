@@ -27,11 +27,11 @@ from scipy.stats import norm
 from numpy.linalg import cholesky as chol
 
 # TODO: evaluate GLS vs OLS
-from statsmodels.api import GEE, GLM, MixedLM, RLM, GLS, OLS
+from statsmodels.api import GEE, GLM, MixedLM, RLM, GLS, OLS, GLSAR
 from statsmodels.genmod.dependence_structures import Exchangeable
 from statsmodels.genmod.families import Gaussian
 
-def one_cluster(formula, methylation, covs, coef, robust=True):
+def one_cluster(formula, methylation, covs, coef, robust=False):
     """used when we have a "cluster" with 1 probe."""
     c = covs.copy()
     c['methylation'] = methylation
@@ -41,8 +41,11 @@ def one_cluster(formula, methylation, covs, coef, robust=True):
 def long_covs(covs, methylation):
     covs['id'] = ['id_%i' % i for i in range(len(covs))]
     cov_rep = pd.concat((covs for i in range(len(methylation))))
-    nr, nc = methylation.shape
-    cov_rep['CpG'] = np.repeat(['CpG_%i' % i for i in range(nr)], nc)
+    #nr, nc = methylation.shape
+    cov_rep['CpG'] = np.repeat(['CpG_%i' % i for i in
+        range(methylation.shape[0])], methylation.shape[1])
+
+    #cov_rep['CpG'] = np.repeat(['CpG_%i' % i for i in range(nr)], nc)
     cov_rep['methylation'] = np.concatenate(methylation)
     return cov_rep
 
@@ -57,6 +60,13 @@ def ols_cluster_robust(formula, methylation, covs, coef):
     cov_rep = long_covs(covs, methylation)
     res = OLS.from_formula(formula, data=cov_rep).fit(cov_type='cluster',
             cov_kwds=dict(groups=cov_rep['id']))
+    return get_ptc(res, coef)
+
+def gls_arcluster(formula, methylation, covs, coef, rho=1):
+    cov_rep = long_covs(covs, methylation)
+    # group by id, then sort by CpG so that AR is to adjacent CpGs
+    cov_rep.sort(['id', 'CpG'], inplace=True)
+    res = GLSAR.from_formula(formula, data=cov_rep, rho=rho).fit()
     return get_ptc(res, coef)
 
 def gls_cluster(formula, methylation, covs, coef):
@@ -86,7 +96,8 @@ def get_ptc(fit, coef):
     assert len(idx) == 1, ("too many params like", coef)
     return {'p': fit.pvalues[idx[0]],
             't': fit.tvalues[idx[0]],
-            'coef': fit.params[idx[0]]}
+            'coef': fit.params[idx[0]],
+            'covar': fit.model.exog_names[idx[0]]}
 
 
 def stouffer_liptak(pvals, sigma):
