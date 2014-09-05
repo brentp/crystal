@@ -62,11 +62,11 @@ def ols_cluster_robust(formula, methylation, covs, coef):
             cov_kwds=dict(groups=cov_rep['id']))
     return get_ptc(res, coef)
 
-def gls_arcluster(formula, methylation, covs, coef, rho=1):
+def glsar_cluster(formula, methylation, covs, coef, rho=6):
     cov_rep = long_covs(covs, methylation)
     # group by id, then sort by CpG so that AR is to adjacent CpGs
     cov_rep.sort(['id', 'CpG'], inplace=True)
-    res = GLSAR.from_formula(formula, data=cov_rep, rho=rho).fit()
+    res = GLSAR.from_formula(formula, data=cov_rep, rho=rho).iterative_fit(maxiter=5)
     return get_ptc(res, coef)
 
 def gls_cluster(formula, methylation, covs, coef):

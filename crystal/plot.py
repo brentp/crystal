@@ -1,13 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 
 def logit(a): return np.log(a / (1 - a))
 def ilogit(m): return 1.0 / (1 + np.exp(-m))
 
-import seaborn as sns
 sns.set(style="white", context="talk")
-
 colors = sns.color_palette("Set1", 8)
+
 def _plot_continuous(feature, var, ax):
     ax.scatter(ilogit(feature.values), var, s=(2 if len(var) > 40 else 4),
             c=colors[0])
@@ -72,27 +72,41 @@ def barplot_cluster(cluster, covs, normed=False, n_bins=50):
         g1 = ilogit(feature.values[group == grps[1]])
 
         shape0 = half_horizontal_bar(g0, i , ax, True,
-                                     dmin=dmin, dmax=dmax, facecolor=colors[0], n_bins=n_bins)
+                                     dmin=dmin, dmax=dmax, edgecolor='0.4',
+                                     facecolor=colors[0], n_bins=n_bins)
         shape1 = half_horizontal_bar(g1, i, ax, False,
-                                     dmin=dmin, dmax=dmax, facecolor=colors[1], n_bins=n_bins)
+                                     dmin=dmin, dmax=dmax, edgecolor='0.4',
+                                     facecolor=colors[1], n_bins=n_bins)
+
     ax.set_xticks(range(len(cluster['cluster'])))
     ax.set_xticklabels([f.position for f in cluster['cluster']])
-    ax.legend((shape0, shape1),
+    l = ax.legend((shape0, shape1),
             ("%s - %s" % (cluster['var'], grps[0]),
-            ("%s - %s" % (cluster['var'], grps[1]))))
+            ("%s - %s" % (cluster['var'], grps[1]))), fancybox=True, loc='best')
+    l.set_frame_on(True)
+    l.get_frame().set_facecolor('white')
+    l.get_frame().set_alpha(0.5)
+    ax.xaxis.grid(linewidth=0.25, color="0.02")
 
+    return fig, ax
 
 def half_horizontal_bar(data, pos, ax, left=False, dmin=0, dmax=1, n_bins=70, **kwargs):
 
     bins = np.linspace(dmin, dmax, n_bins + 1)
     counts, edges = np.histogram(data, bins=bins, density=True)
     counts = (0 + counts)
+    edges = edges[:n_bins]
 
     bsize = edges[1] - edges[0]
     counts /= (2.5 * float(counts.max()))
+
+    keep = counts > 0 # dont draw 0-height bars.
+    counts = counts[keep]
+    edges = edges[keep]
+
 
     if left:
         counts *= -1
 
     pos += (-0.0002 if left else 0.0002)
-    return ax.barh(edges[:n_bins], counts, bsize, left=pos, **kwargs)[0]
+    return ax.barh(edges, counts, bsize, left=pos, **kwargs)[0]
