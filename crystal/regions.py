@@ -2,13 +2,17 @@ from collections import defaultdict
 import toolshed as ts
 
 def region_cluster_gen(features, regions_bed):
-    r"""
-    generate clusters from regions defined in a BED file
+    r"""Generate clusters from regions defined in a BED file.
+
+    Useful for re-testing existing regions--no need to use a
+    clustering method, just yield 'clusters' of sites that fall
+    within the regions in regions_bed.
 
     features: a generator of features
     regions_bed: a bed file
 
-    we read regions into memory, but feature_gen is sorted
+    regions are read into memory, but feature_gen is sorted.
+
     >>> from crystal import Feature
     >>> feats = [Feature('chr1', i, []) for i in [1, 10, 20, 200, 1000, 1001]]
     >>> with open('/tmp/zxzz.bed', 'w') as fh:

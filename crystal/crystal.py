@@ -124,6 +124,7 @@ def _combine_cluster(formula, methylations, covs, coef, robust=False):
     pvals[pvals == 1] = 1.0 - 9e-16
     return dict(t=np.array([r.tvalues[idx] for r in res]),
                 coef=np.array([r.params[idx] for r in res]),
+                covar=res[0].model.exog_names[idx],
                 p=pvals,
                 corr=np.abs(ss.spearmanr(methylations.T)[0]))
 
@@ -254,12 +255,14 @@ class Feature(object):
 
 def evaluate_method(clust_iter, df, formula, coef, model_fn, n_real, n_fake,
         **kwargs):
-
+    import copy
     from simulate import simulate_cluster
-    cluster_iter = clust_iter
 
     clusters = model_clusters(clust_iter, df, formula, coef,
                               model_fn=model_fn, **kwargs)
+
+    #take copy since we modify this for simulate
+    df = df.copy()
 
     trues = []
     tot_time = 0
@@ -268,7 +271,8 @@ def evaluate_method(clust_iter, df, formula, coef, model_fn, n_real, n_fake,
         tot_time += c['time']
         trues.append(c['p'])
 
-    cluster_iter2 = (simulate_cluster(c, w=0) for c in clust_iter)
+    # need the copy here because we are modifying the data in place.
+    cluster_iter2 = (simulate_cluster(copy.deepcopy(c), w=0) for c in clust_iter)
     df[coef] = [1] * (len(df)/2) + [0] * (len(df)/2)
     clusters = model_clusters(cluster_iter2, df, formula, coef,
                               model_fn=model_fn)
