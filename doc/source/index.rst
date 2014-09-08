@@ -3,8 +3,15 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to crystal's documentation!
-===================================
+crystal documentation
+=====================
+
+`crystal` is a python module to assign significance to clusters of
+correlated data. The most likely use-case is for methylation data, but
+it can be use for any correlated data.
+
+New users should check-out the introductory IPython notebook `here <http://nbviewer.ipython.org/github/brentp/crystal/blob/master/notebooks/Introduction.ipynb>`
+
 
 Contents:
 
