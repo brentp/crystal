@@ -1,7 +1,7 @@
 crystal
 -------
 
-A framework to evaluate methylation modeling strategies
+A framework to evaluate methylation modeling strategies and find differentially methylated regions.
 
 quick-start
 -----------
@@ -22,7 +22,7 @@ import aclust
 import crystal
 
 covs_df = pd.read_csv('covariates.csv')
-cluster_iter = aclust.clust(feature_gen(), max_dist=100)
+cluster_iter = aclust.mclust(feature_gen(), max_dist=100)
 crystal.zscore_cluster("methylation ~ disease + age + gender",
                         next(cluster_iter),
                         covs_df,
@@ -39,7 +39,7 @@ for cluster in crystal.model_clusters(cluster_iter, covs_df,
     print cluster
 ```
 
-See the [introduction notebook TODO](nbviewer.org) for more detail
+See the [introduction notebook](http://nbviewer.org/github/brentp/crystal/tree/master/notebooks/) for more detail
 
 Installation
 ------------
@@ -66,3 +66,8 @@ Methods using Robust regression are also available for the above.
 Note that these are cleanly implemented in python thanks to the **excellent** [statsmodels package](https://github.com/statsmodels/statsmodels)
 
 
+Evaluation
+----------
+
+I have evaluated a number of methods for modeling correlated data (clusters).
+See the [evaluation notebook](http://nbviewer.org/github/brentp/crystal/tree/master/notebooks/) for more detail

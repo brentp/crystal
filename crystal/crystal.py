@@ -1,15 +1,5 @@
 """
-An example of how to use the output from aclust.
-
-For each cluster, we get N probes. Since those will be correlated within
-each individual, we use GEE's from a pull request on statsmodels.
-
-We could also use, for example, a mixed-effect model, e.g., in lme4 syntax:
-
-    methylation ~ asthma + age + (1|sample_id)
-
-to allow a random intercept for each sample (where each sample will have
-a number of measurements equal to the number of probes in a given cluster.
+Model clustered, correlated data.
 """
 
 import sys
@@ -26,7 +16,6 @@ import patsy
 from scipy.stats import norm
 from numpy.linalg import cholesky as chol
 
-# TODO: evaluate GLS vs OLS
 from statsmodels.api import GEE, GLM, MixedLM, RLM, GLS, OLS, GLSAR
 from statsmodels.genmod.dependence_structures import Exchangeable
 from statsmodels.genmod.families import Gaussian
@@ -51,12 +40,41 @@ def long_covs(covs, methylation):
 
 def gee_cluster(formula, methylation, covs, coef, cov_struct=Exchangeable(),
         family=Gaussian()):
+    """An example of a `model_fn`; any function with a similar signature
+    can be used.
+
+    Parameters
+    ----------
+
+    formula : str
+        R (patsy) style formula. Must contain 'methylation': e.g.:
+            methylation ~ age + gender + race
+
+    methylation : numpy.ndarray
+        n_sites * n_samples array of (methylation) measurements.
+
+    covs : pandas.DataFrame
+        Contains covariates from `formula`
+
+    coef: str
+        coefficient of interest, e.g. 'age'
+
+    Returns
+    -------
+
+    result : dict
+        dict with values (keys) of at least p-value ('p'), coefficient
+        estimate ('coef') and any other information desired.
+    """
+
     cov_rep = long_covs(covs, methylation)
     res = GEE.from_formula(formula, groups=cov_rep['id'], data=cov_rep, cov_struct=cov_struct).fit()
     return get_ptc(res, coef)
 
 # see: https://gist.github.com/josef-pkt/89585d0b084739a4ed1c
 def ols_cluster_robust(formula, methylation, covs, coef):
+    """Model clusters with cluster-robust OLS, same signature as
+    :func:`~gee_cluster`"""
     cov_rep = long_covs(covs, methylation)
     res = OLS.from_formula(formula, data=cov_rep).fit(cov_type='cluster',
             cov_kwds=dict(groups=cov_rep['id']))
@@ -78,7 +96,8 @@ def gls_cluster(formula, methylation, covs, coef):
     return get_ptc(res, coef)
 
 def mixed_model_cluster(formula, methylation, covs, coef):
-    """Mixed-Effects Model"""
+    """Model clusters with a mixed-model, same signature as
+    :func:`~gee_cluster`"""
     cov_rep = long_covs(covs, methylation)
     # TODO: remove this once newer version of statsmodels is out.
     # speeds convergence by using fixed estimates from OLS
@@ -101,6 +120,7 @@ def get_ptc(fit, coef):
 
 
 def stouffer_liptak(pvals, sigma):
+    """Combine p-values accounting for correlation."""
     qvals = norm.isf(pvals).reshape(len(pvals), 1)
     try:
         C = np.asmatrix(chol(sigma)).I
@@ -132,6 +152,9 @@ def bayes_cluster():
     pass
 
 def liptak_cluster(formula, methylations, covs, coef, robust=False):
+    """Model clusters by fitting model at each site and then
+    combining using :func:`~stouffer_liptak`. same signature as
+    :func:`~gee_cluster`"""
     r = _combine_cluster(formula, methylations, covs, coef, robust=robust)
     r['p'] = stouffer_liptak(r['p'], r['corr'])
     r['t'], r['coef'] = r['t'].mean(), r['coef'].mean()
@@ -139,6 +162,9 @@ def liptak_cluster(formula, methylations, covs, coef, robust=False):
     return r
 
 def zscore_cluster(formula, methylations, covs, coef, robust=False):
+    """Model clusters by fitting model at each site and then
+    combining using the z-score method. Same signature as
+    :func:`~gee_cluster`"""
     r = _combine_cluster(formula, methylations, covs, coef)
     z, L = np.mean(norm.isf(r['p'])), len(r['p'])
     sz = 1.0 / L * np.sqrt(L + 2 * np.tril(r['corr'], k=-1).sum())
@@ -147,15 +173,15 @@ def zscore_cluster(formula, methylations, covs, coef, robust=False):
     r.pop('corr')
     return r
 
-def wrapper(model_fn, model_str, cluster, clin_df, coef, kwargs):
+def wrapper(model_fn, formula, cluster, clin_df, coef, kwargs):
     """wrap the user-defined functions to return everything we expect and
     to call just GLS when there is a single probe."""
     t = time.time()
     if len(cluster) > 1:
-        r = model_fn(model_str, np.array([c.values for c in cluster]), clin_df,
+        r = model_fn(formula, np.array([c.values for c in cluster]), clin_df,
                 coef, **kwargs)
     else:
-        r = one_cluster(model_str, cluster[0].values, clin_df, coef)
+        r = one_cluster(formula, cluster[0].values, clin_df, coef)
     r['time'] = time.time() - t
     r['chrom'] = cluster[0].chrom
     r['start'] = cluster[0].position - 1
@@ -183,16 +209,23 @@ def coef_t_prod(coefs):
     return np.median([coefs['t'][i] * coefs['coef'][i]
                         for i in range(len(coefs['coef']))])
 
-def bump_cluster(model_str, methylations, covs, coef, nsims=100000,
+def bump_cluster(formula, methylations, covs, coef, nsims=100000,
         value_fn=coef_sum, robust=False):
-    orig = _combine_cluster(model_str, methylations, covs, coef, robust=robust)
+    """Model clusters by fitting model at each site and then comparing some
+    metric to the same metric from models fit to simulated data.
+    Uses sequential Monte-carlo to stop once we know the simulated p-value is
+    high (since we are always interested in low p-values).
+
+    Same signature as :func:`~gee_cluster`
+    """
+    orig = _combine_cluster(formula, methylations, covs, coef, robust=robust)
     obs_coef = value_fn(orig)
 
     reduced_residuals, reduced_fitted = [], []
 
     # get the reduced residuals and models so we can shuffle
     for i, methylation in enumerate(methylations):
-        y, X = patsy.dmatrices(model_str, covs, return_type='dataframe')
+        y, X = patsy.dmatrices(formula, covs, return_type='dataframe')
         idxs = [par for par in X.columns if par.startswith(coef)]
         assert len(idxs) == 1, ('too many coefficents like', coef)
         X.pop(idxs[0])
@@ -210,7 +243,7 @@ def bump_cluster(model_str, methylations, covs, coef, nsims=100000,
             reduced_residuals)])
         assert fakem.shape == methylations.shape
 
-        sim = _combine_cluster(model_str, fakem, covs, coef, robust=robust)
+        sim = _combine_cluster(formula, fakem, covs, coef, robust=robust)
         ccut = value_fn(sim)
         ngt += abs(ccut) > abs(obs_coef)
         # sequential monte-carlo.
@@ -223,14 +256,62 @@ def bump_cluster(model_str, methylations, covs, coef, nsims=100000,
     return orig
 
 
-def model_clusters(clust_iter, clin_df, model_str, coef, model_fn=gee_cluster,
+def model_clusters(clust_iter, clin_df, formula, coef, model_fn=gee_cluster,
         n_cpu=None, **kwargs):
-    for r in ts.pmap(wrapper, ((model_fn, model_str, cluster, clin_df, coef,
+    """For each cluster in an iterable, evaluate the chosen model and
+    yield a dictionary of information
+
+    Parameters
+    ----------
+
+    clust_iter : iterable
+        iterable of clusters
+
+    clin_df : pandas.DataFrame
+        Contains covariates from `formula`
+
+    formula : str
+        R (patsy) style formula. Must contain 'methylation': e.g.:
+            methylation ~ age + gender + race
+
+    coef : str
+        The coefficient of interest in the model, e.g. 'age'
+
+    model_fn : fn
+        A function with signature
+        fn(formula, methylation, covs, coef, kwargs)
+        that returns a dictionary with at least p-value and coef
+
+    n_cpu : int
+
+    kwargs: dict
+        arguments sent to `model_fn`
+    """
+
+    for r in ts.pmap(wrapper, ((model_fn, formula, cluster, clin_df, coef,
                                 kwargs) for cluster in clust_iter), n_cpu):
         yield r
 
 
 class Feature(object):
+    """
+    A feature object that can and likely should be used by all programs that
+    call `crystal`. Takes a chromosome, a position and a list of float
+    values that are the methylation measurements (should be logit transformed).
+
+    Attributes
+    ----------
+
+    chrom: str
+
+    position: int
+
+    values: list
+
+    spos: str
+        string position (chr1:12354)
+    """
+
     __slots__ = "chrom position values spos".split()
 
     def __init__(self, chrom, pos, values):
@@ -238,6 +319,7 @@ class Feature(object):
         self.spos = "%s:%i" % (chrom, pos)
 
     def distance(self, other):
+        """Distance between this feature and another."""
         if self.chrom != other.chrom: return sys.maxint
         return self.position - other.position
 
@@ -253,13 +335,43 @@ class Feature(object):
                                                    other.position)
 
 
-def evaluate_method(clust_iter, df, formula, coef, model_fn, **kwargs):
+def evaluate_method(clust_list, df, formula, coef, model_fn, **kwargs):
+    """
+    Evaluate the accuracy of a method (`model_fn`) by see checking
+    the number of DMRs found at various cutoffs for the real data as sent
+    in and data shuffled as in A-clustering
+
+    Parameters
+    ----------
+
+    clust_list : list
+        list of clusters
+
+    df: pandas.DataFrame
+        rontains columns of the covariates listed in formula. Rows
+        must be in the same order as they are in clust_list
+
+    formula : str
+        R (patsy) style formula. Must contain 'methylation': e.g.:
+            methylation ~ age + gender + race
+
+    coef : str
+        The coefficient of interest in the model, e.g. 'age'
+
+    model_fn : fn
+        A function with signature
+        fn(formula, methylation, covs, coef, kwargs)
+        that returns a dictionary with at least p-value and coef
+
+    kwargs: dict
+        extra arguments sent to model_fn
+    """
     import copy
     from simulate import simulate_cluster
-    assert isinstance(clust_iter, list), ("this assumes a list so we can go \
+    assert isinstance(clust_list, list), ("this assumes a list so we can go \
             over it twice")
 
-    clusters = model_clusters(clust_iter, df, formula, coef,
+    clusters = model_clusters(clust_list, df, formula, coef,
                               model_fn=model_fn, **kwargs)
 
     #take copy since we modify this for simulate
@@ -272,7 +384,8 @@ def evaluate_method(clust_iter, df, formula, coef, model_fn, **kwargs):
         trues.append(c['p'])
 
     # need the copy here because we are modifying the data in place.
-    cluster_iter2 = (simulate_cluster(copy.deepcopy(c), w=0) for c in clust_iter)
+    cluster_iter2 = (simulate_cluster(copy.deepcopy(c), w=0) for c in
+    clust_list)
     df[coef] = [1] * (len(df)/2) + [0] * (len(df)/2)
     clusters = model_clusters(cluster_iter2, df, formula, coef,
                               model_fn=model_fn)

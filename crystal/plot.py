@@ -1,3 +1,6 @@
+"""Plotting functions for Clusters."""
+
+
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -29,6 +32,12 @@ def is_dichotomous(col):
     return dichotomous
 
 def plot_cluster(cluster, covs, normed=False):
+    """
+    Plot a cluster (output from `crystal.model_cluster`)
+
+    Plot will vary depending on if cluster['var'] is dichotomous
+    or continuous.
+    """
 
     dichotomous = is_dichotomous(covs[cluster['var']])
     fig, axs = plt.subplots(cluster['n_sites'], sharey=not dichotomous)
