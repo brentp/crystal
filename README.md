@@ -73,4 +73,4 @@ I have evaluated a number of methods for modeling correlated data (clusters).
 See the [evaluation notebook](http://nbviewer.ipython.org/github/brentp/crystal/blob/master/notebooks/crystal-methods-evaluation.ipynb) for more detail. Here
 is the summary image--higher is better for the top plot and lower is better for the bottom plot:
 
-![evaluation](https://gist.github.com/brentp/bf7d3c3d3f23cc319ed8/raw/4fa70b33c0ad65c467dec42ef8bff77856dcc114/eval.png)
+![evaluation](https://gist.github.com/brentp/bf7d3c3d3f23cc319ed8/raw/4fa70b33c0ad65c467dec42ef8bff77856dcc114/eval.png "Evaluation Plot")
