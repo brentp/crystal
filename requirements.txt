@@ -7,3 +7,5 @@ seaborn
 scipy
 patsy
 numpydoc
+docutils
+sphinx
