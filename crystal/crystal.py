@@ -253,11 +253,10 @@ class Feature(object):
                                                    other.position)
 
 
-def evaluate_method(clust_iter, df, formula, coef, model_fn, n_real, n_fake,
-        **kwargs):
+def evaluate_method(clust_iter, df, formula, coef, model_fn, **kwargs):
     import copy
     from simulate import simulate_cluster
-    assert isinstance(list, cluster_iter), ("this assumes a list so we can go \
+    assert isinstance(clust_iter, list), ("this assumes a list so we can go \
             over it twice")
 
     clusters = model_clusters(clust_iter, df, formula, coef,
@@ -265,11 +264,10 @@ def evaluate_method(clust_iter, df, formula, coef, model_fn, n_real, n_fake,
 
     #take copy since we modify this for simulate
     df = df.copy()
+    trues, falses = [], []
 
-    trues = []
     tot_time = 0
     for i, c in enumerate(clusters):
-        if i == n_real: break
         tot_time += c['time']
         trues.append(c['p'])
 
@@ -279,14 +277,11 @@ def evaluate_method(clust_iter, df, formula, coef, model_fn, n_real, n_fake,
     clusters = model_clusters(cluster_iter2, df, formula, coef,
                               model_fn=model_fn)
 
-    falses = []
     for i, c in enumerate(clusters):
-        if i == n_fake: break
         tot_time += c['time']
         falses.append(c['p'])
 
-    r = dict(method=model_fn.func_name, n_real_tests=n_real,
-             n_fake_tests=n_fake, formula=formula, time=tot_time)
+    r = dict(method=model_fn.func_name, formula=formula, time=tot_time)
 
     # find number less than each alpha
     for e in range(8):
