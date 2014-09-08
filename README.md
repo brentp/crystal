@@ -1,7 +1,7 @@
 crystal
 -------
 
-A framework to evaluate methylation modeling strategies and find differentially methylated regions.
+A python module to evaluate methylation modeling strategies and find differentially methylated regions.
 
 quick-start
 -----------
