@@ -3,6 +3,8 @@ crystal
 
 A python module to evaluate methylation modeling strategies and find differentially methylated regions.
 
+See additional documentation [here](http://brentp.github.io/crystal/)
+
 quick-start
 -----------
 
