@@ -257,6 +257,8 @@ def evaluate_method(clust_iter, df, formula, coef, model_fn, n_real, n_fake,
         **kwargs):
     import copy
     from simulate import simulate_cluster
+    assert isinstance(list, cluster_iter), ("this assumes a list so we can go \
+            over it twice")
 
     clusters = model_clusters(clust_iter, df, formula, coef,
                               model_fn=model_fn, **kwargs)
