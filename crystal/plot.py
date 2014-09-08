@@ -73,8 +73,8 @@ def barplot_cluster(cluster, covs, normed=False, n_bins=50):
     fig, ax = plt.subplots(1)
 
     # get min and max for all features so we can use same scale.
-    dmin = min(f.values.min() for f in cluster['cluster'])
-    dmax = max(f.values.max() for f in cluster['cluster'])
+    dmin = ilogit(min(f.values.min() for f in cluster['cluster']))
+    dmax = ilogit(max(f.values.max() for f in cluster['cluster']))
 
     for i, feature in enumerate(cluster['cluster']):
         g0 = ilogit(feature.values[group == grps[0]])
