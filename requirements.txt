@@ -4,6 +4,7 @@ aclust
 toolshed>=0.4
 statsmodels>=0.6.0
 seaborn
+numpy
 scipy
 patsy
 numpydoc
