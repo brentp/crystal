@@ -26,7 +26,7 @@ cluster_iter = aclust.mclust(feature_gen(), max_dist=100)
 crystal.zscore_cluster("methylation ~ disease + age + gender",
                         next(cluster_iter),
                         covs_df,
-                        "disease)
+                        "disease")
 ```
 Which will return a dictionary containing the `p` value, the `coef`
 and the `t` statistic for 'disease' status. However it is more likely
