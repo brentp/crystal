@@ -42,7 +42,7 @@ setup(name='crystal',
       test_suite='nose.collector',
       zip_safe=False,
       install_requires=['numpy', 'pandas', 'aclust', 'toolshed', 'statsmodels',
-          'seaborn', 'scipy', 'patsy', 'numpydoc'],
+          'seaborn>=0.4', 'scipy', 'patsy', 'numpydoc'],
       #scripts=[],
       entry_points={
       },
