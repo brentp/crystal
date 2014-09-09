@@ -2,16 +2,19 @@ import sys
 from toolshed import nopen
 import numpy as np
 import scipy.stats as ss
+from copy import deepcopy
 
 choice = np.random.choice
 
 
-def simulate_cluster(cluster, w, n=None):
+def simulate_cluster(cluster, w, n=None, copy=True):
     """this is the method from the A-clustering paper
     w = 0 generates random data.
     n tells how many in each group to simulate, so the
     data that is sent in should contain at least 2*N.
     """
+    if copy:
+        cluster = [deepcopy(c) for c in cluster]
 
     N = len(cluster[0].values)
     if n is None:

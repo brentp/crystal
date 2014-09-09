@@ -335,7 +335,8 @@ class Feature(object):
                                                    other.position)
 
 
-def evaluate_method(clust_list, df, formula, coef, model_fn, **kwargs):
+def evaluate_method(clust_list, n_true, df, formula, coef, model_fn,
+        kwargs=None):
     """
     Evaluate the accuracy of a method (`model_fn`) by see checking
     the number of DMRs found at various cutoffs for the real data as sent
@@ -346,6 +347,9 @@ def evaluate_method(clust_list, df, formula, coef, model_fn, **kwargs):
 
     clust_list : list
         list of clusters
+
+    n_true : int
+        number of clusters at start of `clust_list` that are true positives
 
     df: pandas.DataFrame
         rontains columns of the covariates listed in formula. Rows
@@ -366,33 +370,18 @@ def evaluate_method(clust_list, df, formula, coef, model_fn, **kwargs):
     kwargs: dict
         extra arguments sent to model_fn
     """
-    import copy
-    from simulate import simulate_cluster
-    assert isinstance(clust_list, list), ("this assumes a list so we can go \
-            over it twice")
+    if kwargs is None: kwargs = {}
 
     clusters = model_clusters(clust_list, df, formula, coef,
                               model_fn=model_fn, **kwargs)
 
     #take copy since we modify this for simulate
-    df = df.copy()
     trues, falses = [], []
 
     tot_time = 0
     for i, c in enumerate(clusters):
         tot_time += c['time']
-        trues.append(c['p'])
-
-    # need the copy here because we are modifying the data in place.
-    cluster_iter2 = (simulate_cluster(copy.deepcopy(c), w=0) for c in
-    clust_list)
-    df[coef] = [1] * (len(df)/2) + [0] * (len(df)/2)
-    clusters = model_clusters(cluster_iter2, df, formula, coef,
-                              model_fn=model_fn)
-
-    for i, c in enumerate(clusters):
-        tot_time += c['time']
-        falses.append(c['p'])
+        (trues if i < n_true else falses).append(c['p'])
 
     r = dict(method=model_fn.func_name, formula=formula, time=tot_time)
 
