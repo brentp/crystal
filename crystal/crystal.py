@@ -375,8 +375,7 @@ def evaluate_method(clust_list, n_true, df, formula, coef, model_fn,
     clusters = model_clusters(clust_list, df, formula, coef,
                               model_fn=model_fn, **kwargs)
 
-    #take copy since we modify this for simulate
-    trues, falses = [], []
+    pvals, trues, falses = [], [], []
 
     tot_time = 0
     for i, c in enumerate(clusters):
@@ -390,7 +389,9 @@ def evaluate_method(clust_list, n_true, df, formula, coef, model_fn,
         v = 10**-e
         r['true_%i' % e] = sum(t <= v for t in trues)
         r['false_%i' % e] = sum(f <= v for f in falses)
-    r['null-ps'] = falses # to get sense of distributions
+        pvals.append(c['p'])
+    r['null-ps'] = np.arary(falses) # to get sense of distributions
+    r['ps'] = np.array(trues + falses)
     return r
 
 if __name__ == "__main__":
