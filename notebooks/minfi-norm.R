@@ -6,6 +6,8 @@ print(head(targets))
 targets$id = rownames(targets)
 
 library(minfi)
+
+
 rgSet = read.450k.exp(base=".", targets, extended=TRUE)
 #qcReport(rgSet)
 
@@ -24,6 +26,10 @@ mdsPlot(b.norm)
 
 message(sprintf("seqnames length: %d, dim: %d, %d", length(locs@seqnames),
                         nrow(locs@ranges@start), ncol(locs@ranges@start)))
+
+xprobes = read.delim('notebooks/non-specific.txt', header=T)[,1]
+
+b.norm = b.norm[!rownames(b.norm) %in% xprobes,]
     
 rownames(b.norm) = paste(locs@seqnames, locs@ranges@start, sep=":")
 colnames(b.norm) = targets$id
