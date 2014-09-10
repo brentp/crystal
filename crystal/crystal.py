@@ -351,7 +351,7 @@ def evaluate_replication(discovery_clusters, replication_clusters,
 
     rclusters = list(model_clusters(replication_clusters, replication_covs,
                                     formula, coef, model_fn=model_fn, pool=pool,
-                                    **kwargs)
+                                    **kwargs))
     tot_time += sum(c['time'] for c in rclusters)
     r = dict(method=model_fn.func_name, formula=formula,
         time=tot_time)
