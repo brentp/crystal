@@ -165,7 +165,7 @@ def zscore_cluster(formula, methylations, covs, coef, robust=False):
     """Model clusters by fitting model at each site and then
     combining using the z-score method. Same signature as
     :func:`~gee_cluster`"""
-    r = _combine_cluster(formula, methylations, covs, coef)
+    r = _combine_cluster(formula, methylations, covs, coef, robust=robust)
     z, L = np.mean(norm.isf(r['p'])), len(r['p'])
     sz = 1.0 / L * np.sqrt(L + 2 * np.tril(r['corr'], k=-1).sum())
     r['p'] = norm.sf(z/sz)
@@ -390,7 +390,8 @@ def evaluate_method(clust_list, n_true, df, formula, coef, model_fn,
         r['true_%i' % e] = sum(t <= v for t in trues)
         r['false_%i' % e] = sum(f <= v for f in falses)
         pvals.append(c['p'])
-    r['null-ps'] = np.arary(falses) # to get sense of distributions
+
+    r['null-ps'] = np.array(falses) # to get sense of distributions
     r['ps'] = np.array(trues + falses)
     return r
 
