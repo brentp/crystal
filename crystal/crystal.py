@@ -257,6 +257,7 @@ def bump_cluster(formula, methylations, covs, coef, nsims=100000,
 
 
 def model_clusters(clust_iter, clin_df, formula, coef, model_fn=gee_cluster,
+        pool=None,
         n_cpu=None, **kwargs):
     """For each cluster in an iterable, evaluate the chosen model and
     yield a dictionary of information
@@ -289,7 +290,8 @@ def model_clusters(clust_iter, clin_df, formula, coef, model_fn=gee_cluster,
     """
 
     for r in ts.pmap(wrapper, ((model_fn, formula, cluster, clin_df, coef,
-                                kwargs) for cluster in clust_iter), n_cpu):
+                                kwargs) for cluster in clust_iter), n_cpu,
+                                p=pool):
         yield r
 
 
@@ -335,7 +337,30 @@ class Feature(object):
                                                    other.position)
 
 
-def evaluate_method(clust_list, n_true, df, formula, coef, model_fn,
+def evaluate_replication(discovery_clusters, replication_clusters,
+                         discovery_covs, replication_covs, formula,
+                         coef, model_fn, pool=None, kwargs=None):
+    print model_fn.func_name
+    if kwargs is None: kwargs = {}
+
+
+    dclusters = model_clusters(discovery_clusters, discovery_covs,
+                               formula, coef, model_fn=model_fn, pool=pool,
+                               **kwargs)
+    tot_time = sum(c['time'] for c in dclusters)
+
+    rclusters = model_clusters(replication_clusters, replication_covs,
+                               formula, coef, model_fn=model_fn, pool=pool,
+                               **kwargs)
+    tot_time += sum(c['time'] for c in rclusters)
+    r = dict(method=model_fn.func_name, formula=formula,
+        time=tot_time)
+    r['replication_p'] = np.array([c['p'] for c in rclusters])
+    r['discovery_p'] = np.array([c['p'] for c in dclusters])
+    return r
+
+
+def evaluate_method(clust_list, n_true, df, formula, coef, model_fn, pool=None,
         kwargs=None):
     """
     Evaluate the accuracy of a method (`model_fn`) by see checking
@@ -370,10 +395,11 @@ def evaluate_method(clust_list, n_true, df, formula, coef, model_fn,
     kwargs: dict
         extra arguments sent to model_fn
     """
+    print model_fn.func_name
     if kwargs is None: kwargs = {}
 
     clusters = model_clusters(clust_list, df, formula, coef,
-                              model_fn=model_fn, **kwargs)
+                              model_fn=model_fn, pool=pool, **kwargs)
 
     pvals, trues, falses = [], [], []
 
