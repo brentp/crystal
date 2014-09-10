@@ -344,14 +344,14 @@ def evaluate_replication(discovery_clusters, replication_clusters,
     if kwargs is None: kwargs = {}
 
 
-    dclusters = model_clusters(discovery_clusters, discovery_covs,
-                               formula, coef, model_fn=model_fn, pool=pool,
-                               **kwargs)
+    dclusters = list(model_clusters(discovery_clusters, discovery_covs,
+                                    formula, coef, model_fn=model_fn, pool=pool,
+                                    **kwargs))
     tot_time = sum(c['time'] for c in dclusters)
 
-    rclusters = model_clusters(replication_clusters, replication_covs,
-                               formula, coef, model_fn=model_fn, pool=pool,
-                               **kwargs)
+    rclusters = list(model_clusters(replication_clusters, replication_covs,
+                                    formula, coef, model_fn=model_fn, pool=pool,
+                                    **kwargs)
     tot_time += sum(c['time'] for c in rclusters)
     r = dict(method=model_fn.func_name, formula=formula,
         time=tot_time)
