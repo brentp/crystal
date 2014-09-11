@@ -327,7 +327,7 @@ class Feature(object):
 
     def is_correlated(self, other):
         rho, p = ss.spearmanr(self.values, other.values)
-        return rho > 0.7
+        return rho > 0.5
 
     def __repr__(self):
         return "Feature({spos})".format(spos=self.spos)
@@ -335,91 +335,6 @@ class Feature(object):
     def __cmp__(self, other):
         return cmp(self.chrom, other.chrom) or cmp(self.position,
                                                    other.position)
-
-
-def evaluate_replication(discovery_clusters, replication_clusters,
-                         discovery_covs, replication_covs, formula,
-                         coef, model_fn, pool=None, kwargs=None):
-    print model_fn.func_name
-    if kwargs is None: kwargs = {}
-
-
-    dclusters = list(model_clusters(discovery_clusters, discovery_covs,
-                                    formula, coef, model_fn=model_fn, pool=pool,
-                                    **kwargs))
-    tot_time = sum(c['time'] for c in dclusters)
-
-    rclusters = list(model_clusters(replication_clusters, replication_covs,
-                                    formula, coef, model_fn=model_fn, pool=pool,
-                                    **kwargs))
-    tot_time += sum(c['time'] for c in rclusters)
-    r = dict(method=model_fn.func_name, formula=formula,
-        time=tot_time)
-    r['replication_p'] = np.array([c['p'] for c in rclusters])
-    r['discovery_p'] = np.array([c['p'] for c in dclusters])
-    return r
-
-
-def evaluate_method(clust_list, n_true, df, formula, coef, model_fn, pool=None,
-        kwargs=None):
-    """
-    Evaluate the accuracy of a method (`model_fn`) by see checking
-    the number of DMRs found at various cutoffs for the real data as sent
-    in and data shuffled as in A-clustering
-
-    Parameters
-    ----------
-
-    clust_list : list
-        list of clusters
-
-    n_true : int
-        number of clusters at start of `clust_list` that are true positives
-
-    df: pandas.DataFrame
-        rontains columns of the covariates listed in formula. Rows
-        must be in the same order as they are in clust_list
-
-    formula : str
-        R (patsy) style formula. Must contain 'methylation': e.g.:
-            methylation ~ age + gender + race
-
-    coef : str
-        The coefficient of interest in the model, e.g. 'age'
-
-    model_fn : fn
-        A function with signature
-        fn(formula, methylation, covs, coef, kwargs)
-        that returns a dictionary with at least p-value and coef
-
-    kwargs: dict
-        extra arguments sent to model_fn
-    """
-    print model_fn.func_name
-    if kwargs is None: kwargs = {}
-
-    clusters = model_clusters(clust_list, df, formula, coef,
-                              model_fn=model_fn, pool=pool, **kwargs)
-
-    pvals, trues, falses = [], [], []
-
-    tot_time = 0
-    for i, c in enumerate(clusters):
-        tot_time += c['time']
-        (trues if i < n_true else falses).append(c['p'])
-
-    r = dict(method=model_fn.func_name, formula=formula, time=tot_time)
-
-    # find number less than each alpha
-    for e in range(8):
-        v = 10**-e
-        r['true_%i' % e] = sum(t <= v for t in trues)
-        r['false_%i' % e] = sum(f <= v for f in falses)
-        pvals.append(c['p'])
-
-    r['null-ps'] = np.array(falses) # to get sense of distributions
-    r['ps'] = np.array(trues + falses)
-    return r
 
 if __name__ == "__main__":
 
