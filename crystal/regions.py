@@ -17,14 +17,16 @@ def region_cluster_gen(features, regions_bed):
 
     >>> from crystal import Feature
     >>> feats = [Feature('chr1', i, []) for i in [1, 10, 20, 25, 200, 1000, 1001]]
+    >>> feats.append(Feature('chr2', 999, []))
     >>> with open('/tmp/zxzz.bed', 'w') as fh:
-    ...     fh.write('chr1\t5\t24\nchr1\t25\t26\nchr1\t999\t1002\n')
+    ...  fh.write('chr1\t5\t25\nchr1\t25\t26\nchr1\t999\t1002\nchr2\t999\t1002\n')
 
     >>> for cluster in region_cluster_gen(feats, fh.name):
     ...    print(cluster)
-    [Feature(chr1:10), Feature(chr1:20)]
     [Feature(chr1:25)]
+    [Feature(chr1:10), Feature(chr1:20), Feature(chr1:25)]
     [Feature(chr1:1000), Feature(chr1:1001)]
+    [Feature(chr2:999)]
     """
 
     regions = defaultdict(list)
@@ -34,37 +36,37 @@ def region_cluster_gen(features, regions_bed):
         # see if it's a header.
         if i == 0 and not (toks[1] + toks[2]).isdigit(): continue
         # seen used keep track of the regions we've found
-        seen.add("-".join(toks))
-        regions[toks[0]].append((int(toks[1]), int(toks[2]), "-".join(toks)))
+        chrom, start, end = toks[0], int(toks[1]), int(toks[2])
+        seen.add((chrom, start, end))
+        regions[chrom].append((start, end, (chrom, start, end)))
     regions = dict(regions)
     # TODO: handle overlapping regions
 
-    dmr = []
+    dmrs = {}
     for f in features:
         cr = regions.get(f.chrom)
         if cr is None:
-            if dmr != []:
-                seen.remove(dmr[0][1])
-                yield [x[0] for x in dmr]
-                dmr = []
+            for reg in dmrs.keys():
+                seen.remove(reg)
+                yield dmrs[reg]
+                dmrs.pop(reg)
             continue
 
-        try:
-            reg = next(rid for (s, e, rid) in cr if s <= f.position <= e)
-        except StopIteration:
-            continue
+        # loop over all regions of overlap and add the feature
+        for reg in (rid for (s, e, rid) in cr if s <= f.position <= e):
+            if not reg in dmrs: dmrs[reg] = []
+            dmrs[reg].append(f)
 
-        if dmr != [] and dmr[-1][-1] != reg:
-            seen.remove(dmr[0][1])
-            assert len(set(d[1] for d in dmr)) == 1
-            yield [x[0] for x in dmr]
-            dmr = []
+        # loop all existing regions and see if the current feature start >
+        # region end. if so, we can pop and yield that region.
+        for rchrom, rstart, rend in dmrs.keys():
+            if rchrom != f.chrom or rend < f.position:
+                seen.remove((rchrom, rstart, rend))
+                yield dmrs.pop((rchrom, rstart, rend))
 
-        dmr.append((f, reg))
-
-    if dmr != []:
-        yield [x[0] for x in dmr]
-        seen.remove(dmr[0][1])
+    for reg in dmrs.keys():
+        seen.remove(reg)
+        yield dmrs.pop(reg)
 
     if seen:
         print(seen, file=sys.stderr)
