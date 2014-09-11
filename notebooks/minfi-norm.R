@@ -17,6 +17,8 @@ m = preprocessQuantile(rgSet)[!bad_probes,]
 rm(rgSet, failed, bad_probes); gc()
 message('B')
 
+xprobes = read.delim('non-specific.txt', header=T)[,1]
+m = m[!rownames(m) %in% xprobes,]
 
 b.norm = getBeta(m)
 locs = getLocations(m)
@@ -27,9 +29,7 @@ mdsPlot(b.norm)
 message(sprintf("seqnames length: %d, dim: %d, %d", length(locs@seqnames),
                         nrow(locs@ranges@start), ncol(locs@ranges@start)))
 
-xprobes = read.delim('notebooks/non-specific.txt', header=T)[,1]
 
-b.norm = b.norm[!rownames(b.norm) %in% xprobes,]
     
 rownames(b.norm) = paste(locs@seqnames, locs@ranges@start, sep=":")
 colnames(b.norm) = targets$id
