@@ -1,5 +1,6 @@
 from .crystal import model_clusters
 import seaborn as sns
+import pandas as pd
 import numpy as np
 import sys
 
