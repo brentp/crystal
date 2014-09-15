@@ -1,12 +1,29 @@
 from .crystal import model_clusters
 import numpy as np
+import sys
 
-def evaluate_replication(discovery_clusters, replication_clusters,
+def evaluate_replication(discovery_clusters, replication_feats,
                          discovery_covs, replication_covs, formula,
                          coef, model_fn, pool=None, kwargs=None):
     print model_fn.func_name
     if kwargs is None: kwargs = {}
 
+    assert isinstance(discovery_clusters, list)
+    if not isinstance(replication_feats, list):
+        sys.stderr.write("warning: feats is not a list. we will exhaust a \
+                generator on first run\n")
+
+    # make replication clusters that are the same as the discovery_clusters
+    from .regions import region_cluster_gen
+    def cluster_bedder(clusts):
+        for c in clusts:
+            yield (c[0].chrom, str(c[0].position - 1), str(c[-1].position))
+
+    replication_clusters = list(region_cluster_gen(
+            replication_feats,
+            cluster_bedder(discovery_clusters)))
+
+    assert len(replication_clusters) == len(discovery_clusters)
 
     dclusters = list(model_clusters(discovery_clusters, discovery_covs,
                                     formula, coef, model_fn=model_fn, pool=pool,
@@ -21,6 +38,7 @@ def evaluate_replication(discovery_clusters, replication_clusters,
         time=tot_time)
     r['replication_p'] = np.array([c['p'] for c in rclusters])
     r['discovery_p'] = np.array([c['p'] for c in dclusters])
+    assert len(r['replication_p']) == len(r['discovery_p'])
     return r
 
 
