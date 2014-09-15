@@ -316,7 +316,7 @@ class Feature(object):
 
     __slots__ = "chrom position values spos".split()
 
-    def __init__(self, chrom, pos, values):
+    def __init__(self, chrom, pos, values, rho_min=0.5):
         self.chrom, self.position, self.values = chrom, pos, np.asarray(values)
         self.spos = "%s:%i" % (chrom, pos)
 
@@ -326,8 +326,9 @@ class Feature(object):
         return self.position - other.position
 
     def is_correlated(self, other):
+        """Return boolean indicating  correlation with other."""
         rho, p = ss.spearmanr(self.values, other.values)
-        return rho > 0.5
+        return rho > self.rho_min
 
     def __repr__(self):
         return "Feature({spos})".format(spos=self.spos)
