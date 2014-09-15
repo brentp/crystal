@@ -53,6 +53,8 @@ def plot_cluster(cluster, covs, normed=False):
 
         if dichotomous:
             _plot_dichotomous(f, covs[cluster['var']], ax, normed=normed)
+            if normed:
+                ax.set_yticklabels([])
         else:
             _plot_continuous(f, covs[cluster['var']], ax)
             ax.set_ylabel(cluster['var'])
@@ -80,12 +82,13 @@ def barplot_cluster(cluster, covs, normed=False, n_bins=50):
         g0 = ilogit(feature.values[group == grps[0]])
         g1 = ilogit(feature.values[group == grps[1]])
 
-        shape0 = half_horizontal_bar(g0, i , ax, True,
+        shape0, max0 = half_horizontal_bar(g0, i , ax, True,
                                      dmin=dmin, dmax=dmax, edgecolor='0.4',
                                      facecolor=colors[0], n_bins=n_bins)
-        shape1 = half_horizontal_bar(g1, i, ax, False,
+        shape1, max1 = half_horizontal_bar(g1, i, ax, False,
                                      dmin=dmin, dmax=dmax, edgecolor='0.4',
-                                     facecolor=colors[1], n_bins=n_bins)
+                                     facecolor=colors[1], n_bins=n_bins,
+                                     norm=max0)
 
     ax.set_xticks(range(len(cluster['cluster'])))
     ax.set_xticklabels([f.position for f in cluster['cluster']])
@@ -99,11 +102,13 @@ def barplot_cluster(cluster, covs, normed=False, n_bins=50):
 
     return fig, ax
 
-def half_horizontal_bar(data, pos, ax, left=False, dmin=0, dmax=1, n_bins=70, **kwargs):
+def half_horizontal_bar(data, pos, ax, left=False, dmin=0, dmax=1, n_bins=70,
+        norm=None, **kwargs):
 
     bins = np.linspace(dmin, dmax, n_bins + 1)
     counts, edges = np.histogram(data, bins=bins, density=True)
     counts = (0 + counts)
+    cnorm = counts.sum()
     edges = edges[:n_bins]
 
     bsize = edges[1] - edges[0]
@@ -113,9 +118,12 @@ def half_horizontal_bar(data, pos, ax, left=False, dmin=0, dmax=1, n_bins=70, **
     counts = counts[keep]
     edges = edges[keep]
 
+    if norm is not None:
+
+        counts *= norm / cnorm
 
     if left:
         counts *= -1
 
     pos += (-0.0002 if left else 0.0002)
-    return ax.barh(edges, counts, bsize, left=pos, **kwargs)[0]
+    return ax.barh(edges, counts, bsize, left=pos, **kwargs)[0], cnorm
