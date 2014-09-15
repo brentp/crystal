@@ -314,11 +314,12 @@ class Feature(object):
         string position (chr1:12354)
     """
 
-    __slots__ = "chrom position values spos".split()
+    __slots__ = "chrom position values spos rho_min".split()
 
     def __init__(self, chrom, pos, values, rho_min=0.5):
         self.chrom, self.position, self.values = chrom, pos, np.asarray(values)
         self.spos = "%s:%i" % (chrom, pos)
+        self.rho_min = rho_min
 
     def distance(self, other):
         """Distance between this feature and another."""
