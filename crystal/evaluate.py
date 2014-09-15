@@ -110,6 +110,43 @@ def evaluate_method(clust_list, n_true, df, formula, coef, model_fn, pool=None,
         plot_roc(ax, r, plot_kwargs)
     return r
 
+def plot_alphas(axs, results):
+    """
+    axs must be of length 2 from plt.subplots(2, 1)
+    """
+    dr = pd.DataFrame(results)
+    dr = pd.melt(dr,
+        id_vars=[c for c in dr.columns if not ('false_' in c or 'true_' in c)],
+        value_vars=[c for c in dr.columns if 'false_' in c or 'true_' in
+            c], value_name='n_lt_alpha')
+
+    dr['alpha'] = [10**-int(x.split("_")[1]) for x in dr['variable']]
+    dr['truth'] = [x.split('_')[0] for x in dr['variable']]
+
+    # only care about stuff with at least p < 0.01
+    r = dr[dr.alpha < 0.01]
+
+    for j, truth in enumerate(("true", "false")):
+        shapes = []
+        for i, m in enumerate(methods):
+            xx = -np.log10(r.alpha[(r.truth == truth) & (r.method == m.func_name)])
+            y = r.n_lt_alpha[(r.truth == truth) & (r.method == m.func_name)]
+            f = axs[j].bar(left=xx+i/9. - 0.28, height=y, width=0.1, fc=colors[i], ec=colors[i])
+            shapes.append(f[0])
+            axs[j].set_xlim(2.5, 7.5)
+
+    axs[1].legend(shapes, clean_methods)
+    axs[1].set_xticks(xx.unique())
+    axs[1].set_xticklabels(['1e-%s' % x for x in range(3, 8)])
+    axs[1].set_xlabel('$a$')
+
+    axs[1].set_ylabel('false positives')
+    axs[0].set_ylabel('true positivies')
+    return fig, axs
+
+
+
+
 def plot_roc(ax, r, plot_kwargs):
     from sklearn.metrics import roc_curve, auc
     truth = np.array([1] * len(r['true-ps']) + [0] * len(r['null-ps']))
@@ -133,3 +170,13 @@ def plot_times(ax, results, colors):
     ax.set_title('CPU time (minutes)')
     ax.set_xticks([])
 
+
+def plot_replication_roc(ax, reps, colors, labels=None, alpha_discovery=0.05):
+    from sklearn.metrics import roc_curve, auc
+    for i, rep in enumerate(reps):
+        d, r = rep['discovery_p'], rep['replication_p']
+        fpr, tpr, _ = roc_curve(d < alpha_discovery, 1 - r)
+        label = "AUC: %.4f - %s" % (auc(fpr, tpr), labels[i] if labels else reps['method'].replace("_", " "))
+        ax.plot(fpr, tpr, label=label, color=colors[i])
+    ax.legend(loc="best")
+    ax.plot([0, 1], [0, 1], 'k--', alpha=0.5)
