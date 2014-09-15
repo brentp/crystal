@@ -193,9 +193,9 @@ def plot_alphas(axs, results, colors=None, cutoff=1e-2):
 
     for j, truth in enumerate(("true", "false")):
         shapes = []
-        for i, m in enumerate(methods):
-            xx = -np.log10(r.alpha[(r.truth == truth) & (r.method == m.func_name)])
-            y = r.n_lt_alpha[(r.truth == truth) & (r.method == m.func_name)]
+        for i, result in enumerate(results):
+            xx = -np.log10(r.alpha[(r.truth == truth) & (r.method == result['method'])])
+            y = r.n_lt_alpha[(r.truth == truth) & (r.method == result['method'])]
             f = axs[j].bar(left=xx+i/9. - 0.28, height=y, width=0.1, fc=colors[i], ec=colors[i])
             shapes.append(f[0])
             axs[j].set_xlim(xmin - 0.5, 7.5)
@@ -208,6 +208,7 @@ def plot_alphas(axs, results, colors=None, cutoff=1e-2):
 
     axs[0].set_ylabel('true positivies')
     axs[1].set_ylabel('false positives')
+
 
 def plot_roc(ax, r, plot_kwargs):
     """
