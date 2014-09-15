@@ -1,10 +1,51 @@
 from .crystal import model_clusters
+import seaborn as sns
 import numpy as np
 import sys
 
 def evaluate_replication(discovery_clusters, replication_feats,
                          discovery_covs, replication_covs, formula,
                          coef, model_fn, pool=None, kwargs=None):
+    """
+    Evaluate a method (`model_fn`) by reporting p-values for discovery and
+    replication cohorts.
+
+    Parameters
+    ----------
+
+    discovery_clusters : list
+        list of clusters from `aclust` from the discovery cohort.
+
+    replication_feats : list
+        list of features from the replication cohort. Clusters are created by
+        mirroring those found in the discovery cohort.
+
+    discovery_covs : DataFrame
+        pandas.DataFrame of covariates for the discovery cohort. Rows must be
+        in same order as the feature values in the discovery_cluster.
+
+    replication_covs : DataFrame
+        pandas.DataFrame of covariates for the repliation cohort. Rows must be
+        in same order as the feature values in the replication_cluster.
+
+    formula : str
+        R (patsy) style formula. Must contain 'methylation': e.g.:
+            methylation ~ age + gender + race
+
+    coef : str
+        The coefficient of interest in the model, e.g. 'age'
+
+    model_fn : fn
+        A function with signature
+        fn(formula, methylation, covs, coef, kwargs)
+        that returns a dictionary with at least p-value and coef
+
+    pool : multiprocessing.Pool
+        a pool to re-use.
+
+    kwargs : dict
+        additional args sent to `model_fn`
+    """
     print model_fn.func_name
     if kwargs is None: kwargs = {}
 
@@ -110,10 +151,32 @@ def evaluate_method(clust_list, n_true, df, formula, coef, model_fn, pool=None,
         plot_roc(ax, r, plot_kwargs)
     return r
 
-def plot_alphas(axs, results):
+def plot_alphas(axs, results, colors=None, cutoff=1e-2):
     """
-    axs must be of length 2 from plt.subplots(2, 1)
+    Plot true and false positives from :func:`~evaluate_method`.
+    This gives a different view from the ROC plot because it
+    may be important to know the performance at a particular \$alpha$
+    cutoff.
+
+    Parameters
+    ----------
+
+    axs: matplotlib axes
+        axs must be of length 2 from plt.subplots(2, 1)
+
+    results: list
+        list of results from evaluate_method
+
+    colors: list
+         list of colors the same length as results
+
+    cutoff : float
+         only plot powers of negative 10 less than this
+
     """
+    if colors is None:
+        colors = sns.color_palette("Set1", len(results))
+
     dr = pd.DataFrame(results)
     dr = pd.melt(dr,
         id_vars=[c for c in dr.columns if not ('false_' in c or 'true_' in c)],
@@ -123,8 +186,9 @@ def plot_alphas(axs, results):
     dr['alpha'] = [10**-int(x.split("_")[1]) for x in dr['variable']]
     dr['truth'] = [x.split('_')[0] for x in dr['variable']]
 
-    # only care about stuff with at least p < 0.01
-    r = dr[dr.alpha < 0.01]
+    # only care about stuff with at least p < cutoff
+    r = dr[dr.alpha < cutoff]
+    xmin = 1 + int(-np.log10(cutoff))
 
     for j, truth in enumerate(("true", "false")):
         shapes = []
@@ -133,21 +197,29 @@ def plot_alphas(axs, results):
             y = r.n_lt_alpha[(r.truth == truth) & (r.method == m.func_name)]
             f = axs[j].bar(left=xx+i/9. - 0.28, height=y, width=0.1, fc=colors[i], ec=colors[i])
             shapes.append(f[0])
-            axs[j].set_xlim(2.5, 7.5)
+            axs[j].set_xlim(xmin - 0.5, 7.5)
 
     axs[1].legend(shapes, clean_methods)
+    axs[0].set_xticks([])
     axs[1].set_xticks(xx.unique())
-    axs[1].set_xticklabels(['1e-%s' % x for x in range(3, 8)])
+    axs[1].set_xticklabels(['1e-%s' % x for x in range(xmin, 8)])
     axs[1].set_xlabel('$a$')
 
-    axs[1].set_ylabel('false positives')
     axs[0].set_ylabel('true positivies')
-    return fig, axs
-
-
-
+    axs[1].set_ylabel('false positives')
 
 def plot_roc(ax, r, plot_kwargs):
+    """
+    Plot ROC for a given result.
+
+    Parameters
+    ----------
+
+    ax: matplotlib axis
+
+    r: dict
+        return value from :func:`~evaluate_method`
+    """
     from sklearn.metrics import roc_curve, auc
     truth = np.array([1] * len(r['true-ps']) + [0] * len(r['null-ps']))
     vals = 1 - r['ps']
@@ -159,7 +231,27 @@ def plot_roc(ax, r, plot_kwargs):
     ax.set_xlabel('1 - specificity')
     ax.set_ylabel('sensitivity')
 
-def plot_times(ax, results, colors):
+def plot_times(ax, results, colors=None):
+    """
+    Plot the times taken for each result in results
+    from :func:`evalute_method`
+
+    Parameters
+    ----------
+
+    ax: matplotlib axis
+
+    results: list of dict
+        list of return values from :func:`~evaluate_method`
+
+    colors: list
+        list of colors for matplotlib
+
+    """
+
+    if colors is None:
+        colors = sns.color_palette("Set1", len(results))
+
     tmax = int(0.5 + np.log10(1 + max(float(m['time']) for m in results) / 60.))
     for i, m in enumerate(results):
         t = float(m['time']) / 60.
@@ -171,7 +263,30 @@ def plot_times(ax, results, colors):
     ax.set_xticks([])
 
 
-def plot_replication_roc(ax, reps, colors, labels=None, alpha_discovery=0.05):
+def plot_replication_roc(ax, reps, colors=None, labels=None, alpha_discovery=0.05):
+    """
+    Plot the ROC curve of results from from :func:`evalute_replication`
+
+    Parameters
+    ----------
+
+    ax: matplotlib axis
+
+    reps: list of dict
+        list of return values from :func:`~evaluate_replication`
+
+    colors: list
+        list of colors for matplotlib
+
+    labels: list
+        list of labels to use. same length as `reps`.
+
+    alpha_discovery : float
+        alpha cutoff to use a "true" positive in discovery cohort.
+    """
+    if colors is None:
+        colors = sns.color_palette("Set1", len(reps))
+
     from sklearn.metrics import roc_curve, auc
     for i, rep in enumerate(reps):
         d, r = rep['discovery_p'], rep['replication_p']
