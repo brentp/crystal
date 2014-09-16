@@ -180,6 +180,8 @@ def plot_alphas(axs, results, colors=None, cutoff=1e-2, labels=None):
     if labels is None:
         labels = [r.get('label', r['method']) for r in results]
 
+    assert len(labels) == len(results)
+
     dr = pd.DataFrame(results)
     dr = pd.melt(dr,
         id_vars=[c for c in dr.columns if not ('false_' in c or 'true_' in c)],
@@ -202,7 +204,7 @@ def plot_alphas(axs, results, colors=None, cutoff=1e-2, labels=None):
             shapes.append(f[0])
             axs[j].set_xlim(xmin - 0.5, 7.5)
 
-    axs[1].legend(shapes, clean_methods)
+    axs[1].legend(shapes, labels)
     axs[0].set_xticks([])
     axs[1].set_xticks(xx.unique())
     axs[1].set_xticklabels(['1e-%s' % x for x in range(xmin, 8)])
