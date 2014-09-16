@@ -6,3 +6,4 @@ cluster-modeling functions.
 
 .. automodule:: crystal.crystal
     :members:
+

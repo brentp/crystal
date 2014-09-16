@@ -19,10 +19,10 @@ Developers interested in evaluating their own method should view `this notebook 
 API Docs
 ========
 
-.. currentmodule:: sphinx
+.. currentmodule:: crystal
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    crystal
    plot
