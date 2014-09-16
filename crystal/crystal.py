@@ -348,6 +348,7 @@ def model_clusters(clust_iter, clin_df, formula, coef, model_fn=gee_cluster,
     kwargs: dict
         arguments sent to `model_fn`
     """
+    as_feature = as_feature or kwargs.pop('as_feature', False)
 
     for r in ts.pmap(wrapper, ((model_fn, formula, cluster, clin_df, coef,
                                 kwargs, as_feature) for cluster in clust_iter), n_cpu,
