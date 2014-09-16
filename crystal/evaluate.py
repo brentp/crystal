@@ -1,5 +1,6 @@
 from collections import defaultdict
 from .crystal import model_clusters
+import toolshed as ts
 import itertools as it
 import seaborn as sns
 import pandas as pd
@@ -87,11 +88,6 @@ def evaluate_replication(discovery_clusters, replication_feats,
     assert len(r['replication_p']) == len(r['discovery_p'])
     return r
 
-def partition(pred, iterable):
-    'Use a predicate to partition entries into false entries and true entries'
-    # partition(is_odd, range(10)) --> 0 2 4 6 8   and  1 3 5 7 9
-    t1, t2 = it.tee(iterable)
-    return it.ifilterfalse(pred, t1), it.ifilter(pred, t2)
 
 def evaluate_regions(clust_list, true_regions, df, formula, coef, model_fn,
         pool=None, kwargs=None):
@@ -136,14 +132,14 @@ def evaluate_regions(clust_list, true_regions, df, formula, coef, model_fn,
         if i == 0 and not (toks[1] + toks[2]).isdigit(): continue
         # seen used keep track of the regions we've found
         chrom, start, end = toks[0], int(toks[1]), int(toks[2])
-        seen.add((chrom, start, end))
         regions[chrom].append((start, end, (chrom, start, end)))
 
     def is_in(c, regions=regions):
         r = regions[c[0].chrom]
-        return any(s <= c[-1].position and e >= c[0].position for s, e in r)
+        return any(s <= c[-1].position and e >= c[0].position for s, e, _ in r)
 
-    out_clusters, in_clusters = partition(is_in, clust_list)
+    out_clusters = [c for c in clust_list if not is_in(c)]
+    in_clusters = [c for c in clust_list if is_in(c)]
     print "%i clusters in regions of interest" % len(in_clusters)
     print "%i clusters outside regions of interest" % len(out_clusters)
     return evaluate_method(in_clusters + out_clusters,
@@ -297,7 +293,7 @@ def plot_roc(ax, r, plot_kwargs):
     truth = np.array([1] * len(r['true-ps']) + [0] * len(r['null-ps']))
     vals = 1 - r['ps']
     vals = vals[~np.isnan(vals)]
-    truth = truth[~np.isnan(truth)]
+    truth = truth[~np.isnan(r['ps'])]
     fpr, tpr, _ = roc_curve(truth, vals)
     label = ("AUC: %.4f | " % auc(fpr, tpr)) + r['label']
     ax.plot(fpr[1:], tpr[1:], label=label, **plot_kwargs)
