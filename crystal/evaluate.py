@@ -152,7 +152,7 @@ def evaluate_method(clust_list, n_true, df, formula, coef, model_fn, pool=None,
         plot_roc(ax, r, plot_kwargs)
     return r
 
-def plot_alphas(axs, results, colors=None, cutoff=1e-2):
+def plot_alphas(axs, results, colors=None, cutoff=1e-2, labels=None):
     """
     Plot true and false positives from :func:`~evaluate_method`.
     This gives a different view from the ROC plot because it
@@ -177,6 +177,8 @@ def plot_alphas(axs, results, colors=None, cutoff=1e-2):
     """
     if colors is None:
         colors = sns.color_palette("Set1", len(results))
+    if labels is None:
+        labels = [r.get('label', r['method']) for r in results]
 
     dr = pd.DataFrame(results)
     dr = pd.melt(dr,
