@@ -31,7 +31,7 @@ def evaluate_replication(discovery_clusters, replication_feats,
 
     formula : str
         R (patsy) style formula. Must contain 'methylation': e.g.:
-            methylation ~ age + gender + race
+        methylation ~ age + gender + race
 
     coef : str
         The coefficient of interest in the model, e.g. 'age'
@@ -106,7 +106,7 @@ def evaluate_method(clust_list, n_true, df, formula, coef, model_fn, pool=None,
 
     formula : str
         R (patsy) style formula. Must contain 'methylation': e.g.:
-            methylation ~ age + gender + race
+        methylation ~ age + gender + race
 
     coef : str
         The coefficient of interest in the model, e.g. 'age'
