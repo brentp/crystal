@@ -48,7 +48,7 @@ def gee_cluster(formula, methylation, covs, coef, cov_struct=Exchangeable(),
 
     formula : str
         R (patsy) style formula. Must contain 'methylation': e.g.:
-            methylation ~ age + gender + race
+        methylation ~ age + gender + race
 
     methylation : numpy.ndarray
         n_sites * n_samples array of (methylation) measurements.
@@ -273,7 +273,7 @@ def model_clusters(clust_iter, clin_df, formula, coef, model_fn=gee_cluster,
 
     formula : str
         R (patsy) style formula. Must contain 'methylation': e.g.:
-            methylation ~ age + gender + race
+        methylation ~ age + gender + race
 
     coef : str
         The coefficient of interest in the model, e.g. 'age'
