@@ -1,8 +1,12 @@
+from collections import defaultdict
 from .crystal import model_clusters
+import itertools as it
 import seaborn as sns
 import pandas as pd
 import numpy as np
 import sys
+
+
 
 def evaluate_replication(discovery_clusters, replication_feats,
                          discovery_covs, replication_covs, formula,
@@ -83,6 +87,69 @@ def evaluate_replication(discovery_clusters, replication_feats,
     assert len(r['replication_p']) == len(r['discovery_p'])
     return r
 
+def partition(pred, iterable):
+    'Use a predicate to partition entries into false entries and true entries'
+    # partition(is_odd, range(10)) --> 0 2 4 6 8   and  1 3 5 7 9
+    t1, t2 = it.tee(iterable)
+    return it.ifilterfalse(pred, t1), it.ifilter(pred, t2)
+
+def evaluate_regions(clust_list, true_regions, df, formula, coef, model_fn,
+        pool=None, kwargs=None):
+    """
+    Evaluate the accuracy of a method (`model_fn`) by comparing how many
+    fall into a set of "truth" regions vs. outside.
+
+    Parameters
+    ----------
+
+    clust_list : list
+        list of clusters
+
+    true_regions : file
+        BED file of regions we expect to find DMRs.
+
+    df: pandas.DataFrame
+        rontains columns of the covariates listed in formula. Rows
+        must be in the same order as they are in clust_list
+
+    formula : str
+        R (patsy) style formula. Must contain 'methylation': e.g.:
+        methylation ~ age + gender + race
+
+    coef : str
+        The coefficient of interest in the model, e.g. 'age'
+
+    model_fn : fn
+        A function with signature
+        fn(formula, methylation, covs, coef, kwargs)
+        that returns a dictionary with at least p-value and coef
+
+    kwargs: dict
+        extra arguments sent to model_fn and a sub-dict of plot_kwargs
+        to send to the plotting if ax is not None
+    """
+    assert isinstance(clust_list, list)
+
+    regions = defaultdict(list)
+    for i, toks in enumerate(ts.reader(true_regions, header=False)):
+        # see if it's a header.
+        if i == 0 and not (toks[1] + toks[2]).isdigit(): continue
+        # seen used keep track of the regions we've found
+        chrom, start, end = toks[0], int(toks[1]), int(toks[2])
+        seen.add((chrom, start, end))
+        regions[chrom].append((start, end, (chrom, start, end)))
+
+    def is_in(c, regions=regions):
+        r = regions[c[0].chrom]
+        return any(s <= c[-1].position and e >= c[0].position for s, e in r)
+
+    out_clusters, in_clusters = partition(is_in, clust_list)
+    print "%i clusters in regions of interest" % len(in_clusters)
+    print "%i clusters outside regions of interest" % len(out_clusters)
+    return evaluate_method(in_clusters + out_clusters,
+                           len(in_clusters),
+                           df, formula, coef, model_fn, pool=pool,
+                           kwargs=kwargs)
 
 def evaluate_method(clust_list, n_true, df, formula, coef, model_fn, pool=None,
         kwargs=None):

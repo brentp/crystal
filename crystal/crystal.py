@@ -40,6 +40,7 @@ def long_covs(covs, methylation):
     return cov_rep
 
 def corr(methylations):
+    if len(methylations) == 0: return np.nan
     if len(methylations) == 1: return [[1]]
     c = np.abs(ss.spearmanr(methylations.T))
     if len(c.shape) == 1:
@@ -54,12 +55,11 @@ def nb_cluster(formula, cluster, covs, coef):
     count = np.array([f.counts for f in cluster])
 
     r = _combine_cluster(formula, [methylated, count], covs, coef, nb=True)
-    if not np.all(np.isnan(r['p'])):
-        try:
-            r['p'] = zscore_combine(r['p'], r['corr'])
-        except:
-            print r['p'], r['corr']
-            raise
+    try:
+        r['p'] = zscore_combine(r['p'], r['corr'])
+    except:
+        print r['p'], r['corr']
+        raise
     # todo: weighted mean?
         r['t'], r['coef'] = r['t'].mean(), r['coef'].mean()
     r.pop('corr')
@@ -160,6 +160,7 @@ def stouffer_liptak(pvals, sigma):
     return norm.sf(Cp)
 
 def zscore_combine(pvals, sigma):
+    if np.all(np.isnan(sigma)): return np.nan
     z, L = np.mean(norm.isf(pvals)), len(pvals)
     sz = 1.0 / L * np.sqrt(L + 2 * np.tril(sigma, k=-1).sum())
     return norm.sf(z / sz)
