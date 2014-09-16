@@ -19,6 +19,7 @@ from numpy.linalg import cholesky as chol
 from statsmodels.api import GEE, GLM, MixedLM, RLM, GLS, OLS, GLSAR
 from statsmodels.genmod.dependence_structures import Exchangeable
 from statsmodels.genmod.families import Gaussian
+from statsmodels.discrete.discrete_model import NegativeBinomial
 
 def one_cluster(formula, methylation, covs, coef, robust=False):
     """used when we have a "cluster" with 1 probe."""
@@ -37,6 +38,32 @@ def long_covs(covs, methylation):
     #cov_rep['CpG'] = np.repeat(['CpG_%i' % i for i in range(nr)], nc)
     cov_rep['methylation'] = np.concatenate(methylation)
     return cov_rep
+
+def corr(methylations):
+    if len(methylations) == 1: return [[1]]
+    c = np.abs(ss.spearmanr(methylations.T))
+    if len(c.shape) == 1:
+        assert len(methylations) == 2
+        return np.array([[1, c[0]], [c[0], 1]])
+    return c[0]
+
+
+def nb_cluster(formula, cluster, covs, coef):
+    """Model a cluster of correlated features with the negative binomial"""
+    methylated = np.array([f.methylated for f in cluster])
+    count = np.array([f.counts for f in cluster])
+
+    r = _combine_cluster(formula, [methylated, count], covs, coef, nb=True)
+    if not np.all(np.isnan(r['p'])):
+        try:
+            r['p'] = zscore_combine(r['p'], r['corr'])
+        except:
+            print r['p'], r['corr']
+            raise
+    # todo: weighted mean?
+        r['t'], r['coef'] = r['t'].mean(), r['coef'].mean()
+    r.pop('corr')
+    return r
 
 def gee_cluster(formula, methylation, covs, coef, cov_struct=Exchangeable(),
         family=Gaussian()):
@@ -126,27 +153,57 @@ def stouffer_liptak(pvals, sigma):
         C = np.asmatrix(chol(sigma)).I
     except np.linalg.linalg.LinAlgError:
           # for non positive definite matrix default to z-score correction.
-          z, L = np.mean(norm.isf(pvals)), len(pvals)
-          sz = 1.0 / L * np.sqrt(L + 2 * np.tril(sigma, k=-1).sum())
-          return norm.sf(z/sz)
+          return zscore_combine(pvals, sigma)
 
     qvals = C * qvals
     Cp = qvals.sum() / np.sqrt(len(qvals))
     return norm.sf(Cp)
 
-def _combine_cluster(formula, methylations, covs, coef, robust=False):
+def zscore_combine(pvals, sigma):
+    z, L = np.mean(norm.isf(pvals)), len(pvals)
+    sz = 1.0 / L * np.sqrt(L + 2 * np.tril(sigma, k=-1).sum())
+    return norm.sf(z / sz)
+
+def _combine_cluster(formula, methylations, covs, coef, robust=False, nb=False):
     """function called by z-score and liptak to get pvalues"""
-    res = [(RLM if robust else GLS).from_formula(formula, covs).fit()
-        for methylation in methylations]
+    if nb:
+        methylations, counts = methylations
+        res = []
+        for methylation, count in izip(methylations, counts):
+            try:
+                res.append(NegativeBinomial.from_formula(formula, covs,
+                           offset=count).fit(disp=0))
+            except np.linalg.LinAlgError:
+                    pass
+        methylations /= counts # for correlation below.
+        if len(res) == 0:
+            return dict(t=np.nan, coef=np.nan, covar="NA", p=np.nan,
+                    corr=np.nan)
+    else:
+        res = [(RLM if robust else GLS).from_formula(formula, covs).fit()
+            for methylation in methylations]
     idx = [i for i, par in enumerate(res[0].model.exog_names)
                    if par.startswith(coef)][0]
-    pvals = np.array([r.pvalues[idx] for r in res], dtype=np.float64)
+    bad = []
+    try:
+        pvals = np.array([r.pvalues[idx] for r in res], dtype=np.float64)
+    except ValueError:
+        for i, r in enumerate(res):
+            try:
+                r.pvalues[idx]
+            except ValueError:
+                bad.append(i)
+
+    if bad:
+        res = [r for i, r in enumerate(res) if not i in bad]
+        pvals = np.array([r.pvalues[idx] for r in res], dtype=np.float64)
+
     pvals[pvals == 1] = 1.0 - 9e-16
     return dict(t=np.array([r.tvalues[idx] for r in res]),
                 coef=np.array([r.params[idx] for r in res]),
                 covar=res[0].model.exog_names[idx],
-                p=pvals,
-                corr=np.abs(ss.spearmanr(methylations.T)[0]))
+                p=pvals[~np.isnan(pvals)],
+                corr=corr(methylations[~np.isnan(pvals)]))
 
 def bayes_cluster():
     pass
@@ -166,22 +223,22 @@ def zscore_cluster(formula, methylations, covs, coef, robust=False):
     combining using the z-score method. Same signature as
     :func:`~gee_cluster`"""
     r = _combine_cluster(formula, methylations, covs, coef, robust=robust)
-    z, L = np.mean(norm.isf(r['p'])), len(r['p'])
-    sz = 1.0 / L * np.sqrt(L + 2 * np.tril(r['corr'], k=-1).sum())
-    r['p'] = norm.sf(z/sz)
+    r['p'] = zscore_combine(r['p'], r.pop('corr'))
     r['t'], r['coef'] = r['t'].mean(), r['coef'].mean()
-    r.pop('corr')
     return r
 
-def wrapper(model_fn, formula, cluster, clin_df, coef, kwargs):
+def wrapper(model_fn, formula, cluster, clin_df, coef, kwargs,
+            as_features=False):
     """wrap the user-defined functions to return everything we expect and
     to call just GLS when there is a single probe."""
     t = time.time()
     if len(cluster) > 1:
-        r = model_fn(formula, np.array([c.values for c in cluster]), clin_df,
+        r = model_fn(formula,
+                cluster if as_features else np.array([c.values for c in cluster]),
+                clin_df,
                 coef, **kwargs)
     else:
-        r = one_cluster(formula, cluster[0].values, clin_df, coef)
+        r = one_cluster(formula, cluster[0] if as_features else cluster[0].values, clin_df, coef)
     r['time'] = time.time() - t
     r['chrom'] = cluster[0].chrom
     r['start'] = cluster[0].position - 1
@@ -258,7 +315,9 @@ def bump_cluster(formula, methylations, covs, coef, nsims=100000,
 
 def model_clusters(clust_iter, clin_df, formula, coef, model_fn=gee_cluster,
         pool=None,
-        n_cpu=None, **kwargs):
+        n_cpu=None,
+        as_feature=False,
+        **kwargs):
     """For each cluster in an iterable, evaluate the chosen model and
     yield a dictionary of information
 
@@ -290,7 +349,7 @@ def model_clusters(clust_iter, clin_df, formula, coef, model_fn=gee_cluster,
     """
 
     for r in ts.pmap(wrapper, ((model_fn, formula, cluster, clin_df, coef,
-                                kwargs) for cluster in clust_iter), n_cpu,
+                                kwargs, as_feature) for cluster in clust_iter), n_cpu,
                                 p=pool):
         yield r
 
@@ -312,14 +371,21 @@ class Feature(object):
 
     spos: str
         string position (chr1:12354)
+
+    rho_min : float
+        minimum spearman's R to be considered correlated
+
+    ovalues : list
+        other values potentially used by modeling functions
     """
 
-    __slots__ = "chrom position values spos rho_min".split()
+    __slots__ = "chrom position values spos rho_min ovalues".split()
 
-    def __init__(self, chrom, pos, values, rho_min=0.5):
-        self.chrom, self.position, self.values = chrom, pos, np.asarray(values)
+    def __init__(self, chrom, pos, values, ovalues=None, rho_min=0.5):
         self.spos = "%s:%i" % (chrom, pos)
+        self.chrom, self.position, self.values = chrom, pos, np.asarray(values)
         self.rho_min = rho_min
+        self.ovalues = ovalues
 
     def distance(self, other):
         """Distance between this feature and another."""
@@ -332,11 +398,20 @@ class Feature(object):
         return rho > self.rho_min
 
     def __repr__(self):
-        return "Feature({spos})".format(spos=self.spos)
+        return "{cls}({spos})".format(spos=self.spos,
+                                        cls=self.__class__.__name__)
 
     def __cmp__(self, other):
         return cmp(self.chrom, other.chrom) or cmp(self.position,
                                                    other.position)
+
+class CountFeature(Feature):
+    def __init__(self, chrom, pos, methylated, counts, rho_min=0.5):
+        Feature.__init__(self, chrom, pos, methylated, counts)
+        self.counts = counts
+        # use ratios for correlation.
+        self.values = methylated / counts
+        self.methylated = methylated
 
 if __name__ == "__main__":
 
