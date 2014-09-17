@@ -52,17 +52,21 @@ def corr(methylations):
 def nb_cluster(formula, cluster, covs, coef):
     """Model a cluster of correlated features with the negative binomial"""
     methylated = np.array([f.methylated for f in cluster])
-    count = np.array([f.counts for f in cluster])
-
-    r = _combine_cluster(formula, [methylated, count], covs, coef, nb=True)
+    counts = np.array([f.counts for f in cluster])
     try:
-        r['p'] = zscore_combine(r['p'], r['corr'])
+        # intentionally flipped so that we model count ~ disease with
+        # methylated offset.
+        res = [NegativeBinomial.from_formula(formula, covs, offset=count)\
+               .fit(disp=0) for methylation, count in izip(methylated, counts)]
     except:
-        print r['p'], r['corr']
-        raise
-    # todo: weighted mean?
-        r['t'], r['coef'] = r['t'].mean(), r['coef'].mean()
-    r.pop('corr')
+        return dict(t=np.nan, coef=np.nan, covar="NA", p=np.nan, corr=np.nan)
+
+    methylations = methylated / counts # for correlation below.
+
+    r = get_ptc(res, coef)
+    nan = np.isnan(r['p'])
+    r['p'] = zscore_combine(r['p'][~nan], corr(methylations[~nan]))
+    r['t'], r['coef'] = np.mean(r['t']), np.mean(r['coef'])
     return r
 
 def gee_cluster(formula, methylation, covs, coef, cov_struct=Exchangeable(),
@@ -119,7 +123,7 @@ def gls_cluster(formula, methylation, covs, coef):
     cov_rep = long_covs(covs, methylation)
     z = np.cov(methylation.T)
     sigma = np.repeat(np.repeat(z, len(methylation), axis=0), len(methylation), axis=1)
-    res = GLS.from_formula(formula, data=cov_rep, sigma=sigma)
+    res = GLS.from_formula(formula, data=cov_rep, sigma=sigma).fit()
     return get_ptc(res, coef)
 
 def mixed_model_cluster(formula, methylation, covs, coef):
@@ -137,16 +141,27 @@ def mixed_model_cluster(formula, methylation, covs, coef):
     return get_ptc(res, coef)
 
 def get_ptc(fit, coef):
+    if isinstance(fit, list):
+        result, res = [get_ptc(f, coef) for f in fit], {}
+        for c in ('p', 't', 'coef'):
+            res[c] = np.array([r[c] for r in result])
+        res['covar'] = result[0]['covar']
+        return res
+
     idx = [i for i, par in enumerate(fit.model.exog_names)
-                       if par.startswith(coef)]
+                        if par.startswith(coef)]
     assert len(idx) == 1, ("too many params like", coef)
-    return {'p': fit.pvalues[idx[0]],
+    try:
+        return {'p': fit.pvalues[idx[0]],
             't': fit.tvalues[idx[0]],
             'coef': fit.params[idx[0]],
             'covar': fit.model.exog_names[idx[0]]}
+    except ValueError:
+        return dict(p=np.nan, t=np.nan, coef=np.nan,
+                covar=fit.model.exog_names[idx[0]])
 
 
-def stouffer_liptak(pvals, sigma):
+def stouffer_liptak_combine(pvals, sigma):
     """Combine p-values accounting for correlation."""
     qvals = norm.isf(pvals).reshape(len(pvals), 1)
     try:
@@ -165,40 +180,13 @@ def zscore_combine(pvals, sigma):
     sz = 1.0 / L * np.sqrt(L + 2 * np.tril(sigma, k=-1).sum())
     return norm.sf(z / sz)
 
-def _combine_cluster(formula, methylations, covs, coef, robust=False, nb=False):
+def _combine_cluster(formula, methylations, covs, coef, robust=False):
     """function called by z-score and liptak to get pvalues"""
-    if nb:
-        methylations, counts = methylations
-        res = []
-        for methylation, count in izip(methylations, counts):
-            try:
-                res.append(NegativeBinomial.from_formula(formula, covs,
-                           offset=count).fit(disp=0))
-            except np.linalg.LinAlgError:
-                    pass
-        methylations /= counts # for correlation below.
-        if len(res) == 0:
-            return dict(t=np.nan, coef=np.nan, covar="NA", p=np.nan,
-                    corr=np.nan)
-    else:
-        res = [(RLM if robust else GLS).from_formula(formula, covs).fit()
+    res = [(RLM if robust else GLS).from_formula(formula, covs).fit()
             for methylation in methylations]
     idx = [i for i, par in enumerate(res[0].model.exog_names)
                    if par.startswith(coef)][0]
-    bad = []
-    try:
-        pvals = np.array([r.pvalues[idx] for r in res], dtype=np.float64)
-    except ValueError:
-        for i, r in enumerate(res):
-            try:
-                r.pvalues[idx]
-            except ValueError:
-                bad.append(i)
-
-    if bad:
-        res = [r for i, r in enumerate(res) if not i in bad]
-        pvals = np.array([r.pvalues[idx] for r in res], dtype=np.float64)
-
+    pvals = np.array([r.pvalues[idx] for r in res], dtype=np.float64)
     pvals[pvals == 1] = 1.0 - 9e-16
     return dict(t=np.array([r.tvalues[idx] for r in res]),
                 coef=np.array([r.params[idx] for r in res]),
@@ -214,7 +202,7 @@ def liptak_cluster(formula, methylations, covs, coef, robust=False):
     combining using :func:`~stouffer_liptak`. same signature as
     :func:`~gee_cluster`"""
     r = _combine_cluster(formula, methylations, covs, coef, robust=robust)
-    r['p'] = stouffer_liptak(r['p'], r['corr'])
+    r['p'] = stouffer_liptak_combine(r['p'], r['corr'])
     r['t'], r['coef'] = r['t'].mean(), r['coef'].mean()
     r.pop('corr')
     return r
@@ -412,7 +400,7 @@ class CountFeature(Feature):
         Feature.__init__(self, chrom, pos, methylated, counts)
         self.counts = counts
         # use ratios for correlation.
-        self.values = methylated / counts
+        self.values = methylated / counts.astype(float)
         self.methylated = methylated
 
 if __name__ == "__main__":
