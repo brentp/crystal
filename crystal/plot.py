@@ -63,6 +63,7 @@ def plot_cluster(cluster, covs, normed=False):
     ax.set_xticklabels(np.arange(0, 1.001, 0.25))
     if dichotomous:
         axs[0].legend(loc="best")
+    plt.tight_layout()
     return fig, axs
 
 
