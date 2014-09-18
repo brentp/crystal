@@ -66,6 +66,24 @@ def plot_cluster(cluster, covs, normed=False):
     plt.tight_layout()
     return fig, axs
 
+def factorplot_cluster(cluster, cov, palette='Set1', ilogit=False):
+    # http://web.stanford.edu/~mwaskom/software/seaborn/tutorial/categorical_linear_models.html
+    features = cluster['cluster']
+    methylation = np.array([f.values for f in features]).T
+    if ilogit:
+        methylation = 1 / (1 + np.exp(-methylation))
+    df = pd.DataFrame(methylation, columns=[f.spos for f in features])
+    df['id'] = [str(x) for x in cov['id']]
+    var = cluster['var']
+    df[var] = [str(x) for x in cov[var]]
+    df = pd.melt(df, id_vars=(var, 'id'), var_name='position')
+
+    fp = sns.factorplot('position', 'value', var, df, kind='box',
+            palette=palette, legend=False)
+    plt.draw()
+    ax = fp.fig.axes[0]
+    ax.legend(loc='best')
+    return fp
 
 def barplot_cluster(cluster, covs, normed=False, n_bins=50):
     # this only works for 2-class data.
