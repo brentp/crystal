@@ -300,6 +300,19 @@ def plot_roc(ax, r, plot_kwargs):
     ax.set_xlabel('1 - specificity')
     ax.set_ylabel('sensitivity')
 
+def plot_pvalue_grid(results):
+    # http://web.stanford.edu/~mwaskom/software/seaborn/tutorial/axis_grids.html
+    grid = np.array([r['null-ps'] for r in results]).T
+    grid = pd.DataFrame(grid, columns=[r.get('label', r['method']) for r in results])
+
+    g = sns.PairGrid(grid, diag_sharey=True)#, hue='truth')
+
+    #g.map_diag(plt.hist)
+    g.map_offdiag(lambda x, y, *args, **kwargs: plt.scatter(-np.log10(x),
+                                                            -np.log10(y), *args, **kwargs))
+    return g
+
+
 def plot_times(ax, results, colors=None):
     """
     Plot the times taken for each result in results
