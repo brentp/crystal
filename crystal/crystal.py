@@ -18,17 +18,17 @@ from numpy.linalg import cholesky as chol
 
 from statsmodels.api import GEE, GLM, MixedLM, RLM, GLS, OLS, GLSAR
 from statsmodels.genmod.dependence_structures import Exchangeable
-from statsmodels.genmod.families import Gaussian
+from statsmodels.genmod.families import Gaussian, Poisson
 from statsmodels.discrete.discrete_model import NegativeBinomial
 
-def one_cluster(formula, methylation, covs, coef, robust=False):
+def one_cluster(formula, cluster, covs, coef, robust=False):
     """used when we have a "cluster" with 1 probe."""
     c = covs.copy()
-    c['methylation'] = methylation
+    c['methylation'] = cluster[0].values
     res = (RLM if robust else GLS).from_formula(formula, data=c).fit()
     return get_ptc(res, coef)
 
-def long_covs(covs, methylation):
+def long_covs(covs, methylation, **kwargs):
     covs['id'] = ['id_%i' % i for i in range(len(covs))]
     cov_rep = pd.concat((covs for i in range(len(methylation))))
     #nr, nc = methylation.shape
@@ -37,6 +37,9 @@ def long_covs(covs, methylation):
 
     #cov_rep['CpG'] = np.repeat(['CpG_%i' % i for i in range(nr)], nc)
     cov_rep['methylation'] = np.concatenate(methylation)
+    for k, arr in kwargs.items():
+        assert arr.shape == methylation.shape
+        cov_rep[k] = np.concatenate(arr)
     return cov_rep
 
 def corr(methylations):
@@ -69,7 +72,7 @@ def nb_cluster(formula, cluster, covs, coef):
     r['t'], r['coef'] = np.mean(r['t']), np.mean(r['coef'])
     return r
 
-def gee_cluster(formula, methylation, covs, coef, cov_struct=Exchangeable(),
+def gee_cluster(formula, cluster, covs, coef, cov_struct=Exchangeable(),
         family=Gaussian()):
     """An example of a `model_fn`; any function with a similar signature
     can be used.
@@ -81,14 +84,25 @@ def gee_cluster(formula, methylation, covs, coef, cov_struct=Exchangeable(),
         R (patsy) style formula. Must contain 'methylation': e.g.:
         methylation ~ age + gender + race
 
-    methylation : numpy.ndarray
-        n_sites * n_samples array of (methylation) measurements.
+    cluster : list of Features
+        cluster of features from clustering or a region.
+        most functions will create a methylation matrix with:
+        >>> meth = np.array([f.values for f in features])
 
     covs : pandas.DataFrame
         Contains covariates from `formula`
 
     coef: str
         coefficient of interest, e.g. 'age'
+
+    cov_struct: object
+        one of the covariance structures provided by statsmodels.
+        Likely either Exchangeable() or Independent()
+
+    family: object
+        one of the familyies provided by statsmodels. If Guassian(),
+        then methylation is assumed to be count-based (clusters of
+        CountFeatures.
 
     Returns
     -------
@@ -97,22 +111,31 @@ def gee_cluster(formula, methylation, covs, coef, cov_struct=Exchangeable(),
         dict with values (keys) of at least p-value ('p'), coefficient
         estimate ('coef') and any other information desired.
     """
+    if isinstance(family, Gaussian):
+        cov_rep = long_covs(covs, np.array([f.values for f in cluster]))
+        res = GEE.from_formula(formula, groups=cov_rep['id'], data=cov_rep,
+            cov_struct=cov_struct, family=family).fit()
+    elif isinstance(family, Poisson):
+        cov_rep = long_covs(covs, np.array([f.methylated for f in cluster]),
+                counts = np.array([f.counts for f in cluster]))
+        res = GEE.from_formula(formula, groups=cov_rep['id'], data=cov_rep,
+            cov_struct=cov_struct, family=family, exposure=cov_rep['counts']).fit()
+    else:
+        raise Exception("Only guassian and poisson are supported")
 
-    cov_rep = long_covs(covs, methylation)
-    res = GEE.from_formula(formula, groups=cov_rep['id'], data=cov_rep, cov_struct=cov_struct).fit()
     return get_ptc(res, coef)
 
 # see: https://gist.github.com/josef-pkt/89585d0b084739a4ed1c
-def ols_cluster_robust(formula, methylation, covs, coef):
+def ols_cluster_robust(formula, cluster, covs, coef):
     """Model clusters with cluster-robust OLS, same signature as
     :func:`~gee_cluster`"""
-    cov_rep = long_covs(covs, methylation)
+    cov_rep = long_covs(covs, np.array([f.values for f in cluster]))
     res = OLS.from_formula(formula, data=cov_rep).fit(cov_type='cluster',
             cov_kwds=dict(groups=cov_rep['id']))
     return get_ptc(res, coef)
 
-def glsar_cluster(formula, methylation, covs, coef, rho=6):
-    cov_rep = long_covs(covs, methylation)
+def glsar_cluster(formula, cluster, covs, coef, rho=6):
+    cov_rep = long_covs(covs, np.array([f.values for f in cluster]))
     # group by id, then sort by CpG so that AR is to adjacent CpGs
     cov_rep.sort(['id', 'CpG'], inplace=True)
     res = GLSAR.from_formula(formula, data=cov_rep, rho=rho).iterative_fit(maxiter=5)
@@ -126,10 +149,10 @@ def gls_cluster(formula, methylation, covs, coef):
     res = GLS.from_formula(formula, data=cov_rep, sigma=sigma).fit()
     return get_ptc(res, coef)
 
-def mixed_model_cluster(formula, methylation, covs, coef):
+def mixed_model_cluster(formula, cluster, covs, coef):
     """Model clusters with a mixed-model, same signature as
     :func:`~gee_cluster`"""
-    cov_rep = long_covs(covs, methylation)
+    cov_rep = long_covs(covs, np.array([f.values for f in cluster]))
     # TODO: remove this once newer version of statsmodels is out.
     # speeds convergence by using fixed estimates from OLS
     params = OLS.from_formula(formula, data=cov_rep).fit().params
@@ -197,37 +220,38 @@ def _combine_cluster(formula, methylations, covs, coef, robust=False):
 def bayes_cluster():
     pass
 
-def liptak_cluster(formula, methylations, covs, coef, robust=False):
+def liptak_cluster(formula, cluster, covs, coef, robust=False):
     """Model clusters by fitting model at each site and then
     combining using :func:`~stouffer_liptak`. same signature as
     :func:`~gee_cluster`"""
+    methylations = np.array([f.values for f in cluster])
     r = _combine_cluster(formula, methylations, covs, coef, robust=robust)
     r['p'] = stouffer_liptak_combine(r['p'], r['corr'])
     r['t'], r['coef'] = r['t'].mean(), r['coef'].mean()
     r.pop('corr')
     return r
 
-def zscore_cluster(formula, methylations, covs, coef, robust=False):
+def zscore_cluster(formula, cluster, covs, coef, robust=False):
     """Model clusters by fitting model at each site and then
     combining using the z-score method. Same signature as
     :func:`~gee_cluster`"""
+    methylations = np.array([f.values for f in cluster])
     r = _combine_cluster(formula, methylations, covs, coef, robust=robust)
     r['p'] = zscore_combine(r['p'], r.pop('corr'))
     r['t'], r['coef'] = r['t'].mean(), r['coef'].mean()
     return r
 
-def wrapper(model_fn, formula, cluster, clin_df, coef, kwargs,
-            as_features=False):
+def wrapper(model_fn, formula, cluster, clin_df, coef, kwargs):
     """wrap the user-defined functions to return everything we expect and
     to call just GLS when there is a single probe."""
     t = time.time()
     if len(cluster) > 1:
         r = model_fn(formula,
-                cluster if as_features else np.array([c.values for c in cluster]),
+                cluster,
                 clin_df,
                 coef, **kwargs)
     else:
-        r = one_cluster(formula, cluster[0] if as_features else cluster[0].values, clin_df, coef)
+        r = one_cluster(formula, cluster[0], clin_df, coef)
     r['time'] = time.time() - t
     r['chrom'] = cluster[0].chrom
     r['start'] = cluster[0].position - 1
@@ -255,7 +279,7 @@ def coef_t_prod(coefs):
     return np.median([coefs['t'][i] * coefs['coef'][i]
                         for i in range(len(coefs['coef']))])
 
-def bump_cluster(formula, methylations, covs, coef, nsims=100000,
+def bump_cluster(formula, cluster, covs, coef, nsims=100000,
         value_fn=coef_sum, robust=False):
     """Model clusters by fitting model at each site and then comparing some
     metric to the same metric from models fit to simulated data.
@@ -264,6 +288,7 @@ def bump_cluster(formula, methylations, covs, coef, nsims=100000,
 
     Same signature as :func:`~gee_cluster`
     """
+    methylations = np.array([f.values for f in cluster])
     orig = _combine_cluster(formula, methylations, covs, coef, robust=robust)
     obs_coef = value_fn(orig)
 
@@ -275,7 +300,7 @@ def bump_cluster(formula, methylations, covs, coef, nsims=100000,
         idxs = [par for par in X.columns if par.startswith(coef)]
         assert len(idxs) == 1, ('too many coefficents like', coef)
         X.pop(idxs[0])
-        fitr = (RLM if robust else GLS)(y, X).fit()
+        fitr = (RLM if robust else OLS)(y, X).fit()
 
         reduced_residuals.append(np.array(fitr.resid))
         reduced_fitted.append(np.array(fitr.fittedvalues))
@@ -295,17 +320,16 @@ def bump_cluster(formula, methylations, covs, coef, nsims=100000,
         # sequential monte-carlo.
         if ngt > 5: break
 
-    p = (1.0 + ngt) / (2.0 + isim) # extra 1 in denom for 0-index
     orig.pop('corr')
-    orig['p'] = p
+    orig['p'] = (1.0 + ngt) / (2.0 + isim) # extra 1 in denom for 0-index
     orig['coef'], orig['t'] = orig['coef'].mean(), orig['t'].mean()
+    orig['n_sim'] = isim + 1
     return orig
 
 
 def model_clusters(clust_iter, clin_df, formula, coef, model_fn=gee_cluster,
         pool=None,
         n_cpu=None,
-        as_feature=False,
         **kwargs):
     """For each cluster in an iterable, evaluate the chosen model and
     yield a dictionary of information
@@ -336,10 +360,9 @@ def model_clusters(clust_iter, clin_df, formula, coef, model_fn=gee_cluster,
     kwargs: dict
         arguments sent to `model_fn`
     """
-    as_feature = as_feature or kwargs.pop('as_feature', False)
 
     for r in ts.pmap(wrapper, ((model_fn, formula, cluster, clin_df, coef,
-                                kwargs, as_feature) for cluster in clust_iter), n_cpu,
+                                kwargs) for cluster in clust_iter), n_cpu,
                                 p=pool):
         yield r
 
