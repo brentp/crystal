@@ -241,9 +241,10 @@ def zscore_cluster(formula, cluster, covs, coef, robust=False):
     r['t'], r['coef'] = r['t'].mean(), r['coef'].mean()
     return r
 
-def wrapper(model_fn, formula, cluster, clin_df, coef, kwargs):
+def wrapper(model_fn, formula, cluster, clin_df, coef, kwargs=None):
     """wrap the user-defined functions to return everything we expect and
     to call just GLS when there is a single probe."""
+    if kwargs is None: kwargs = {}
     t = time.time()
     if len(cluster) > 1:
         r = model_fn(formula,
