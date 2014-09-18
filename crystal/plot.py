@@ -146,3 +146,49 @@ def half_horizontal_bar(data, pos, ax, left=False, dmin=0, dmax=1, n_bins=70,
 
     pos += (-0.0002 if left else 0.0002)
     return ax.barh(edges, counts, bsize, left=pos, **kwargs)[0], cnorm
+
+
+def spaghetti_plot(cluster, cov, ax=None, ilogit=False, palette='Set1'):
+    """Create a spaghetti plot of a modeled cluster."""
+    from pandas.tools.plotting import parallel_coordinates
+    from crystal import CountFeature
+    features = cluster['cluster']
+    methylation = np.array([f.values for f in features]).T
+    if ilogit:
+        methylation = 1 / (1 + np.exp(-methylation))
+    df = pd.DataFrame(methylation, columns=[f.spos for f in features])
+    var = cluster['var']
+    df[var] = [str(x) for x in cov[var]]
+
+    mmax = methylation.max().max()
+    mmin = methylation.min().min()
+    if ax is None:
+        fig, ax = plt.subplots(1)
+
+    colors=sns.color_palette(palette)
+    ax = parallel_coordinates(df, var, colors=colors, ax=ax, use_columns=False)
+    # pandas adds dark axvline, this is to remove that.
+    lines = ax.get_lines()
+    for i in range(len(features)):
+        lines.pop().remove()
+    lbls = ax.get_legend().get_texts()
+
+    if isinstance(features[0], CountFeature):
+        counts = np.array([f.counts for f in features]).T
+        for icol, f in enumerate(features):
+            for group in sorted(df[var].unique()):
+                ax.scatter([icol] * sum(df[var] == group),
+                       methylation[df[var] == group, icol],
+                       edgecolors=colors[icol],
+                       facecolors=colors[j],
+                       alpha=0.5,
+                       s=counts[df[var] == group, icol])
+    plt.draw()
+    xmin, xmax = ax.get_xlim()
+    ax.set_xlim(int(xmin) - 0.05, int(xmax) + 0.05)
+    ax.get_legend().set_title(var)
+    ax.set_ylabel('methylation')
+    sns.axes_style({'axes.linewidth': 0, 'axes.grid': False})
+    sns.despine()
+    sns.set_style("ticks")
+    return ax
