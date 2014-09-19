@@ -1,8 +1,16 @@
-"""Plotting functions for Clusters."""
+"""Plotting functions for Clusters.
+
+.. testsetup:: *
+
+    import crystal
+    import crystal.utils as cu
+
+"""
 
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import seaborn as sns
 
 def logit(a): return np.log(a / (1 - a))
@@ -37,6 +45,18 @@ def plot_cluster(cluster, covs, normed=False):
 
     Plot will vary depending on if cluster['var'] is dichotomous
     or continuous.
+
+    .. plot::
+        :include-source: true
+
+        >>> import crystal
+        >>> import crystal.utils as cu
+        >>> covs, cluster = cu.example_random_cluster(25, 4)
+        >>> formula = "methylation ~ age + gender"
+        >>> c = crystal.wrapper(crystal.zscore_cluster, formula, cluster, covs, "gender")
+        >>> crystal.plot.plot_cluster(c, covs)
+
+    We will get a different plot if the cluster is a continuous variable.
     """
 
     dichotomous = is_dichotomous(covs[cluster['var']])
@@ -63,11 +83,29 @@ def plot_cluster(cluster, covs, normed=False):
     ax.set_xticklabels(np.arange(0, 1.001, 0.25))
     if dichotomous:
         axs[0].legend(loc="best")
+        l = axs[0].get_legend()
+        l.set_frame_on(True)
+        l.get_frame().set_facecolor('white')
+        l.get_frame().set_alpha(0.5)
     plt.tight_layout()
     return fig, axs
 
 def factorplot_cluster(cluster, cov, palette='Set1', ilogit=False):
     # http://web.stanford.edu/~mwaskom/software/seaborn/tutorial/categorical_linear_models.html
+    """
+    Create a factor plot.
+
+    .. plot::
+        :include-source: true
+
+        >>> import crystal
+        >>> import crystal.utils as cu
+        >>> covs, cluster = cu.example_random_cluster(34, 4)
+        >>> formula = "methylation ~ age + gender"
+        >>> c = crystal.wrapper(crystal.zscore_cluster, formula, cluster, covs, "gender")
+        >>> crystal.plot.factorplot_cluster(c, covs)
+
+    """
     features = cluster['cluster']
     methylation = np.array([f.values for f in features]).T
     if ilogit:
@@ -86,7 +124,20 @@ def factorplot_cluster(cluster, cov, palette='Set1', ilogit=False):
     return fp
 
 def barplot_cluster(cluster, covs, normed=False, n_bins=50):
-    # this only works for 2-class data.
+    """
+    Make a barplot of a cluster. Only works for 2-class data,
+    e.g. gender or case-control
+
+    .. plot::
+        :include-source: true
+
+        >>> import crystal
+        >>> import crystal.utils as cu
+        >>> covs, cluster = cu.example_random_cluster(34, 4)
+        >>> formula = "methylation ~ age + gender"
+        >>> c = crystal.wrapper(crystal.zscore_cluster, formula, cluster, covs, "gender")
+        >>> crystal.plot.barplot_cluster(c, covs)
+    """
     group = np.array(covs[cluster['var']])
     grps = sorted(np.unique(group))
     assert len(grps) == 2
@@ -149,7 +200,20 @@ def half_horizontal_bar(data, pos, ax, left=False, dmin=0, dmax=1, n_bins=70,
 
 
 def spaghetti_plot(cluster, cov, ax=None, ilogit=False, palette='Set1'):
-    """Create a spaghetti plot of a modeled cluster."""
+    """Create a spaghetti plot of a modeled cluster. This is best when the
+       number of samples is less than about 20. Otherwise, use
+       :func:`~plot_cluster`
+
+    .. plot::
+        :include-source: true
+
+        >>> import crystal
+        >>> import crystal.utils as cu
+        >>> covs, cluster = cu.example_random_cluster(12, 4)
+        >>> formula = "methylation ~ age + gender"
+        >>> c = crystal.wrapper(crystal.zscore_cluster, formula, cluster, covs, "gender")
+        >>> crystal.plot.spaghetti_plot(c, covs)
+    """
     from pandas.tools.plotting import parallel_coordinates
     from crystal import CountFeature
     features = cluster['cluster']
@@ -172,6 +236,10 @@ def spaghetti_plot(cluster, cov, ax=None, ilogit=False, palette='Set1'):
     for i in range(len(features)):
         lines.pop().remove()
     lbls = ax.get_legend().get_texts()
+    l = ax.get_legend()
+    l.set_frame_on(True)
+    l.get_frame().set_facecolor('white')
+    l.get_frame().set_alpha(0.5)
 
     if isinstance(features[0], CountFeature):
         counts = np.array([f.counts for f in features]).T
