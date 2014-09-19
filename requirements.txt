@@ -1,6 +1,6 @@
 toolshed>=0.4
 aclust
-cython>0.20.1
+cython=>0.20
 numpy
 scipy
 pandas
