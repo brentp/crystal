@@ -3,7 +3,8 @@ toolshed>=0.4
 aclust
 numpy
 scipy
-statsmodels>=0.6.0
+# until statsmodels 0.6
+git+https://github.com/statsmodels/statsmodels#egg=statsmodels
 seaborn>=0.4
 patsy
 numpydoc
