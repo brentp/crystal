@@ -25,7 +25,7 @@ def one_cluster(formula, cluster, covs, coef, robust=False):
     """used when we have a "cluster" with 1 probe."""
     c = covs.copy()
     c['methylation'] = cluster[0].values
-    res = (RLM if robust else GLS).from_formula(formula, data=c).fit()
+    res = (RLM if robust else OLS).from_formula(formula, data=c).fit()
     return get_ptc(res, coef)
 
 def long_covs(covs, methylation, **kwargs):
@@ -205,7 +205,7 @@ def zscore_combine(pvals, sigma):
 
 def _combine_cluster(formula, methylations, covs, coef, robust=False):
     """function called by z-score and liptak to get pvalues"""
-    res = [(RLM if robust else GLS).from_formula(formula, covs).fit()
+    res = [(RLM if robust else OLS).from_formula(formula, covs).fit()
             for methylation in methylations]
     idx = [i for i, par in enumerate(res[0].model.exog_names)
                    if par.startswith(coef)][0]
@@ -243,7 +243,7 @@ def zscore_cluster(formula, cluster, covs, coef, robust=False):
 
 def wrapper(model_fn, formula, cluster, clin_df, coef, kwargs=None):
     """wrap the user-defined functions to return everything we expect and
-    to call just GLS when there is a single probe."""
+    to call just OLS when there is a single probe."""
     if kwargs is None: kwargs = {}
     t = time.time()
     if len(cluster) > 1:
@@ -280,7 +280,7 @@ def coef_t_prod(coefs):
     return np.median([coefs['t'][i] * coefs['coef'][i]
                         for i in range(len(coefs['coef']))])
 
-def bump_cluster(formula, cluster, covs, coef, nsims=100000,
+def bump_cluster(formula, cluster, covs, coef, nsims=20000,
         value_fn=coef_sum, robust=False):
     """Model clusters by fitting model at each site and then comparing some
     metric to the same metric from models fit to simulated data.
@@ -322,9 +322,11 @@ def bump_cluster(formula, cluster, covs, coef, nsims=100000,
         if ngt > 5: break
 
     orig.pop('corr')
-    orig['p'] = (1.0 + ngt) / (2.0 + isim) # extra 1 in denom for 0-index
-    orig['coef'], orig['t'] = orig['coef'].mean(), orig['t'].mean()
+    # extra 1 in denom for 0-index
     orig['n_sim'] = isim + 1
+    # extra 1 so we can't get 0 p-value
+    orig['p'] = (1.0 + ngt) / (1.0 + orig['n_sim'])
+    orig['coef'], orig['t'] = orig['coef'].mean(), orig['t'].mean()
     return orig
 
 
