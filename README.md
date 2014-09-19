@@ -5,6 +5,11 @@ python modules to evaluate methylation modeling strategies and find differential
 
 See additional documentation [here](http://brentp.github.io/crystal/)
 
+
+Here is an example of a region discovered by `crystal` where males have lower methylation than females
+![dmr](http://brentp.github.io/crystal/_images/ex-pipeline.png "Example DMR")
+
+
 quick-start
 -----------
 
