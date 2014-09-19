@@ -301,6 +301,7 @@ def plot_roc(ax, r, plot_kwargs):
     ax.set_ylabel('sensitivity')
 
 def plot_pvalue_grid(results):
+    from matplotlib import pyplot as plt
     # http://web.stanford.edu/~mwaskom/software/seaborn/tutorial/axis_grids.html
     grid = np.array([r['null-ps'] for r in results]).T
     grid = pd.DataFrame(grid, columns=[r.get('label', r['method']) for r in results])
