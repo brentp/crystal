@@ -2,11 +2,11 @@ import pandas as pd
 import numpy as np
 import crystal
 
-np.random.seed(10)
+np.random.seed(42)
 covs = pd.DataFrame({'gender': ['F'] * 10 + ['M'] * 10,
-                     'age': np.random.uniform(10, 25) })
+                     'age': np.random.uniform(10, 25, size=20) })
 
-methylation = np.random.normal(size=(5, covs.shape[0]))
+methylation = np.random.normal(-1, 1, size=(5, covs.shape[0]))
 
 cluster = [crystal.Feature('chr1', i* 10, m) for i, m in enumerate(methylation)]
 
@@ -40,11 +40,12 @@ def test_models():
     for coef in ('age', 'gender'):
         for m, form in ((crystal.zscore_cluster, formula),
                   (crystal.liptak_cluster, formula),
-    #              (crystal.bump_cluster, formula),
+                  (crystal.bump_cluster, formula),
                   (crystal.gee_cluster, formula_cpg),
                   (crystal.mixed_model_cluster, formula_cpg),
                   (crystal.glsar_cluster, formula_cpg),
-                  (crystal.ols_cluster_robust, formula_cpg)):
+#                  (crystal.ols_cluster_robust, formula_cpg)
+                  ):
             yield check_model, m, form, coef
             yield check_wrapper, m, form, coef
 
@@ -65,3 +66,10 @@ def test_long_covs():
 
     assert len(dflong['id'].unique()) == len(methylation[0])
     assert len(dflong['CpG'].unique()) == len(methylation)
+
+def test_random_cluster():
+    import crystal.utils
+    covs, cluster = crystal.utils.example_random_cluster(50, 4)
+    assert len(covs) == 50
+    assert len(cluster) == 4, len(cluster)
+    assert all(len(f.values) == 50 for f in cluster)

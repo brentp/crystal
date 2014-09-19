@@ -87,7 +87,7 @@ def gee_cluster(formula, cluster, covs, coef, cov_struct=Exchangeable(),
     cluster : list of Features
         cluster of features from clustering or a region.
         most functions will create a methylation matrix with:
-        >>> meth = np.array([f.values for f in features])
+        >> meth = np.array([f.values for f in features])
 
     covs : pandas.DataFrame
         Contains covariates from `formula`
@@ -428,43 +428,3 @@ class CountFeature(Feature):
         # use ratios for correlation.
         self.values = methylated / counts.astype(float)
         self.methylated = methylated
-
-if __name__ == "__main__":
-
-    def feature_gen(fname):
-        for i, toks in enumerate(ts.reader(fname, header=False)):
-            if i == 0: continue
-            chrom, pos = toks[0].split(":")
-            yield Feature(chrom, int(pos), map(float, toks[1:]))
-
-    #fmt = "{chrom}\t{start}\t{end}\t{n_probes}\t{p:5g}\t{t:.4f}\t{coef:.4f}\t{var}"
-    #print ts.fmt2header(fmt)
-
-    clust_iter = (c for c in mclust(feature_gen(sys.argv[1]),
-                                    max_dist=400, max_skip=1) if len(c) > 2)
-
-
-    df = pd.read_table('meth.clin.txt')
-    df['id'] = df['StudyID']
-    formula = "methylation ~ asthma + age + gender"
-
-    np.random.seed(10)
-    ntrue, nfalse = 10, 10
-
-    results = []
-    for fn in (bump_cluster, liptak_cluster, zscore_cluster):
-        results.append(evaluate_method(clust_iter, df, formula, 'asthma', fn,
-            ntrue, nfalse))
-
-    formula = "methylation ~ asthma + age + gender"
-    for fn in (gee_cluster, mixed_model_cluster):
-        results.append(evaluate_method(clust_iter, df, formula, 'asthma', fn,
-            ntrue, nfalse))
-
-    results = pd.DataFrame(results)
-    print pd.melt(results,
-            id_vars=[c for c in results.columns if not ('false' in c or 'true' in c)],
-            value_vars=[c for c in results.columns if 'false' in c or 'true' in
-                c], value_name='n_lt_alpha')
-
-
