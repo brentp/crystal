@@ -230,7 +230,7 @@ def spaghetti_plot(cluster, cov, ax=None, ilogit=False, palette='Set1'):
         fig, ax = plt.subplots(1)
 
     colors=sns.color_palette(palette)
-    ax = parallel_coordinates(df, var, colors=colors, ax=ax, use_columns=False)
+    ax = parallel_coordinates(df, var, color=colors, ax=ax, use_columns=False)
     # pandas adds dark axvline, this is to remove that.
     lines = ax.get_lines()
     for i in range(len(features)):

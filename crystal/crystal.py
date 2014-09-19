@@ -21,10 +21,10 @@ from statsmodels.genmod.dependence_structures import Exchangeable
 from statsmodels.genmod.families import Gaussian, Poisson
 from statsmodels.discrete.discrete_model import NegativeBinomial
 
-def one_cluster(formula, cluster, covs, coef, robust=False):
+def one_cluster(formula, feature, covs, coef, robust=False):
     """used when we have a "cluster" with 1 probe."""
     c = covs.copy()
-    c['methylation'] = cluster[0].values
+    c['methylation'] = feature.values
     res = (RLM if robust else OLS).from_formula(formula, data=c).fit()
     return get_ptc(res, coef)
 

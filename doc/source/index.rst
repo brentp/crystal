@@ -74,6 +74,40 @@ that users will want a simple way to model every cluster:
                                           n_cpu=10):
         print cluster
 
+Example
+=======
+
+Here we run through an actual example using data in the repository. It would be simple
+to modify this script to run on any data.
+
+.. plot:: _static/ex-pipeline.py
+    :include-source: true
+
+Note that we have this looks like a site where males generally have a lower level of 
+methylation than females. The text output looks like this::
+
+    chrom	start	end	coef	n_sites	
+    chrX	2733163	2745940	0.0002336	-0.514	3
+    chrX	2746332	2746420	0.006272	0.257	2
+    chrX	2746696	2746697	0.5873	-0.077	1
+    chrX	2747135	2747136	0.5996	0.054	1
+    chrX	2800456	2800457	0.6346	0.041	1
+    chrX	2822260	2822261	0.03331	0.168	1
+    chrX	2825269	2825270	0.0005556	-0.361	1
+    chrX	2825361	2825362	0.05747	-0.168	1
+    chrX	2825595	2825596	0.8458	-0.039	1
+    chrX	2826828	2835913	0.001088	-0.254	2
+    chrX	2836026	2836084	0.1921	0.148	2
+    chrX	2836113	2836114	0.8866	-0.024	1
+    chrX	2836299	2836300	0.001849	-0.288	1
+    chrX	2843195	2843196	0.01105	-0.173	1
+    chrX	2844680	2844681	0.07179	-0.272	1
+    chrX	2846195	2846196	0.5473	-0.075	1
+    chrX	2846892	2846893	0.13	-0.101	1
+    chrX	2847353	2847503	0.008624	-0.437	3
+    chrX	2847509	2847510	0.81	0.039	1
+    chrX	2847548	2852845	0.0003622	-0.490	6
+
 Indices and tables
 ==================
 
