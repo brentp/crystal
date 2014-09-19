@@ -4,7 +4,7 @@ cython>=0.20
 numpy
 scipy
 pandas
-patsy
+patsy>=0.3
 matplotlib
 # until statsmodels 0.6
 git+https://github.com/statsmodels/statsmodels#egg=statsmodels
