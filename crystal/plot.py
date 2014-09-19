@@ -1,5 +1,9 @@
 """Plotting functions for Clusters.
 
+Note that some visualizations work best with datasets that
+have fewer samples while some are more informative with more
+samples.
+
 .. testsetup:: *
 
     import crystal
@@ -51,7 +55,7 @@ def plot_cluster(cluster, covs, normed=False):
 
         >>> import crystal
         >>> import crystal.utils as cu
-        >>> covs, cluster = cu.example_random_cluster(25, 4)
+        >>> covs, cluster = cu.real_cluster()
         >>> formula = "methylation ~ age + gender"
         >>> c = crystal.wrapper(crystal.zscore_cluster, formula, cluster, covs, "gender")
         >>> crystal.plot.plot_cluster(c, covs)
@@ -100,7 +104,7 @@ def factorplot_cluster(cluster, cov, palette='Set1', ilogit=False):
 
         >>> import crystal
         >>> import crystal.utils as cu
-        >>> covs, cluster = cu.example_random_cluster(34, 4)
+        >>> covs, cluster = cu.real_cluster()
         >>> formula = "methylation ~ age + gender"
         >>> c = crystal.wrapper(crystal.zscore_cluster, formula, cluster, covs, "gender")
         >>> crystal.plot.factorplot_cluster(c, covs)
@@ -133,7 +137,7 @@ def barplot_cluster(cluster, covs, normed=False, n_bins=50):
 
         >>> import crystal
         >>> import crystal.utils as cu
-        >>> covs, cluster = cu.example_random_cluster(34, 4)
+        >>> covs, cluster = cu.real_cluster()
         >>> formula = "methylation ~ age + gender"
         >>> c = crystal.wrapper(crystal.zscore_cluster, formula, cluster, covs, "gender")
         >>> crystal.plot.barplot_cluster(c, covs)
@@ -209,7 +213,7 @@ def spaghetti_plot(cluster, cov, ax=None, ilogit=False, palette='Set1'):
 
         >>> import crystal
         >>> import crystal.utils as cu
-        >>> covs, cluster = cu.example_random_cluster(12, 4)
+        >>> covs, cluster = cu.real_cluster()
         >>> formula = "methylation ~ age + gender"
         >>> c = crystal.wrapper(crystal.zscore_cluster, formula, cluster, covs, "gender")
         >>> crystal.plot.spaghetti_plot(c, covs)
