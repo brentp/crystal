@@ -1,11 +1,11 @@
 pandas
 aclust
 toolshed>=0.4
+patsy
 statsmodels>=0.6.0
 seaborn>=0.4
 numpy
 scipy
-patsy
 numpydoc
 docutils
 sphinx
