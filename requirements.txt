@@ -1,10 +1,10 @@
 pandas
-aclust
 toolshed>=0.4
-statsmodels>=0.6.0
-seaborn>=0.4
+aclust
 numpy
 scipy
+statsmodels>=0.6.0
+seaborn>=0.4
 patsy
 numpydoc
 docutils
