@@ -108,6 +108,17 @@ methylation than females. The text output looks like this::
     chrX	2847509	2847510	0.81	0.039	1
     chrX	2847548	2852845	0.0003622	-0.490	6
 
+Development
+===========
+
+`crystal` is developed at `https://github.com/brentp/crystal <https://github.com/brentp/crystal/>`_.
+
+It includes example data in the `crystal/tests` directory.
+
+It has decent test coverage and tests can be run with `./test.sh` from the root of the project
+directory.
+
+
 Indices and tables
 ==================
 

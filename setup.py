@@ -1,3 +1,6 @@
+import os
+# for travis
+os.environ["MPLCONFIGDIR"] = "."
 try:
     from ez_setup import use_setuptools
     use_setuptools()
