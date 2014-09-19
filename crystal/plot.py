@@ -239,6 +239,7 @@ def spaghetti_plot(cluster, cov, ax=None, ilogit=False, palette='Set1'):
     lines = ax.get_lines()
     for i in range(len(features)):
         lines.pop().remove()
+    ax.legend(loc='best')
     lbls = ax.get_legend().get_texts()
     l = ax.get_legend()
     l.set_frame_on(True)
