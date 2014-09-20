@@ -213,10 +213,15 @@ def spaghetti_plot(cluster, cov, ax=None, ilogit=False, palette='Set1'):
 
         >>> import crystal
         >>> import crystal.utils as cu
-        >>> covs, cluster = cu.real_cluster()
-        >>> formula = "methylation ~ age + gender"
-        >>> c = crystal.wrapper(crystal.zscore_cluster, formula, cluster, covs, "gender")
+        >>> covs, cluster = cu.real_count_cluster()
+        >>> covs.head()
+        >>> formula = "methylation ~ ko"
+        >>> c = crystal.wrapper(crystal.zscore_cluster, formula, cluster, covs, "ko")
         >>> crystal.plot.spaghetti_plot(c, covs)
+
+    .. note:: 
+        in the case of CountFeature as from sequence data, the points
+        are sized by the sequencing depth.
     """
     from pandas.tools.plotting import parallel_coordinates
     from crystal import CountFeature
@@ -245,17 +250,17 @@ def spaghetti_plot(cluster, cov, ax=None, ilogit=False, palette='Set1'):
     l.set_frame_on(True)
     l.get_frame().set_facecolor('white')
     l.get_frame().set_alpha(0.5)
-
     if isinstance(features[0], CountFeature):
         counts = np.array([f.counts for f in features]).T
         for icol, f in enumerate(features):
-            for group in sorted(df[var].unique()):
-                ax.scatter([icol] * sum(df[var] == group),
-                       methylation[df[var] == group, icol],
-                       edgecolors=colors[icol],
+            for j, group in enumerate(sorted(df[var].unique())):
+                sel = np.array(df[var] == group)
+                ax.scatter([icol] * sel.sum(),
+                       methylation[sel, icol],
+                       edgecolors=colors[j],
                        facecolors=colors[j],
                        alpha=0.5,
-                       s=counts[df[var] == group, icol])
+                       s=counts[sel, icol])
     plt.draw()
     xmin, xmax = ax.get_xlim()
     ax.set_xlim(int(xmin) - 0.05, int(xmax) + 0.05)

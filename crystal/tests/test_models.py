@@ -31,7 +31,7 @@ def check_wrapper(m, formula, coef):
 
 def test_one():
 
-    r = crystal.one_cluster(formula, cluster, covs, "age")
+    r = crystal.one_cluster(formula, cluster[0], covs, "age")
     for k in ('p', 't', 'covar', 'coef'):
         assert k in r, r
 
@@ -73,3 +73,8 @@ def test_random_cluster():
     assert len(covs) == 50
     assert len(cluster) == 4, len(cluster)
     assert all(len(f.values) == 50 for f in cluster)
+
+def test_real_cluster():
+    import crystal.utils
+    covs, cluster = crystal.utils.real_cluster()
+    assert all(len(f.values) == len(covs) for f in cluster)

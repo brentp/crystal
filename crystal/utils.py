@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from .crystal import Feature
+from .crystal import Feature, CountFeature
 import os
 
 def example_random_cluster(n_samples, n_sites, seed=42):
@@ -29,4 +29,22 @@ def real_cluster():
             range(len(meth))]
 
     covs = pd.read_csv('%s/covs.csv' % path)
+    return covs, cluster
+
+def real_count_cluster():
+
+    path = os.path.join(os.path.dirname(__file__), "tests")
+
+    c = pd.read_csv('%s/m.counts.csv' % path, index_col=0)
+    m = pd.read_csv('%s/m.methylated.csv' % path, index_col=0)
+
+    chroms = [x.split(":")[0] for x in m.index]
+    starts = [int(x.split(":")[1]) for x in c.index]
+
+    cluster = [CountFeature(chroms[i], starts[i],
+                            np.array(m.ix[i, :]),
+                            np.array(c.ix[i, :]))
+                  for i in range(len(m))]
+
+    covs = pd.read_table('%s/m.covs.txt' % path)
     return covs, cluster
