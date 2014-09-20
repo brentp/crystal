@@ -30,10 +30,15 @@ def check_wrapper(m, formula, coef):
         assert v in r
 
 def test_one():
-
-    r = crystal.one_cluster(formula, cluster[0], covs, "age")
+    formula = "methylation ~ ko + Eos"
+    covs, cluster = crystal.utils.real_count_cluster()
+    r = crystal.one_cluster(formula, cluster[0], covs, "ko")
     for k in ('p', 't', 'covar', 'coef'):
         assert k in r, r
+
+def test_one_count():
+
+    r = crystal.one_cluster(formula, cluster[0], covs, "age")
 
 def test_models():
     """testing models on cluster"""

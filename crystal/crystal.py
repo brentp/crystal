@@ -3,9 +3,8 @@ Model clustered, correlated data.
 """
 
 import sys
-from aclust import mclust
 import toolshed as ts
-from itertools import starmap, izip
+from itertools import izip
 import time
 
 import pandas as pd
@@ -20,13 +19,6 @@ from statsmodels.api import GEE, GLM, MixedLM, RLM, GLS, OLS, GLSAR
 from statsmodels.genmod.dependence_structures import Exchangeable
 from statsmodels.genmod.families import Gaussian, Poisson
 from statsmodels.discrete.discrete_model import NegativeBinomial
-
-def one_cluster(formula, feature, covs, coef, robust=False):
-    """used when we have a "cluster" with 1 probe."""
-    c = covs.copy()
-    c['methylation'] = feature.values
-    res = (RLM if robust else OLS).from_formula(formula, data=c).fit()
-    return get_ptc(res, coef)
 
 def long_covs(covs, methylation, **kwargs):
     covs['id'] = ['id_%i' % i for i in range(len(covs))]
@@ -50,6 +42,39 @@ def corr(methylations):
         assert len(methylations) == 2
         return np.array([[1, c[0]], [c[0], 1]])
     return c[0]
+
+def get_ptc(fit, coef):
+    if isinstance(fit, list):
+        result, res = [get_ptc(f, coef) for f in fit], {}
+        for c in ('p', 't', 'coef'):
+            res[c] = np.array([r[c] for r in result])
+        res['covar'] = result[0]['covar']
+        return res
+
+    idx = [i for i, par in enumerate(fit.model.exog_names)
+                        if par.startswith(coef)]
+    assert len(idx) == 1, ("too many params like", coef)
+    try:
+        return {'p': fit.pvalues[idx[0]],
+            't': fit.tvalues[idx[0]],
+            'coef': fit.params[idx[0]],
+            'covar': fit.model.exog_names[idx[0]]}
+    except ValueError:
+        return dict(p=np.nan, t=np.nan, coef=np.nan,
+                covar=fit.model.exog_names[idx[0]])
+
+def one_cluster(formula, feature, covs, coef, robust=False):
+    """used when we have a "cluster" with 1 probe."""
+    c = covs.copy()
+    if isinstance(feature, CountFeature):
+        c['methylation'] = feature.methylated
+        c['counts'] = feature.counts
+        return get_ptc(GLM.from_formula(formula, data=c,
+                                        offset=c['counts']).fit(), coef)
+    else:
+        c['methylation'] = feature.values
+        res = (RLM if robust else OLS).from_formula(formula, data=c).fit()
+        return get_ptc(res, coef)
 
 
 def nb_cluster(formula, cluster, covs, coef):
@@ -163,27 +188,6 @@ def mixed_model_cluster(formula, cluster, covs, coef):
 
     return get_ptc(res, coef)
 
-def get_ptc(fit, coef):
-    if isinstance(fit, list):
-        result, res = [get_ptc(f, coef) for f in fit], {}
-        for c in ('p', 't', 'coef'):
-            res[c] = np.array([r[c] for r in result])
-        res['covar'] = result[0]['covar']
-        return res
-
-    idx = [i for i, par in enumerate(fit.model.exog_names)
-                        if par.startswith(coef)]
-    assert len(idx) == 1, ("too many params like", coef)
-    try:
-        return {'p': fit.pvalues[idx[0]],
-            't': fit.tvalues[idx[0]],
-            'coef': fit.params[idx[0]],
-            'covar': fit.model.exog_names[idx[0]]}
-    except ValueError:
-        return dict(p=np.nan, t=np.nan, coef=np.nan,
-                covar=fit.model.exog_names[idx[0]])
-
-
 def stouffer_liptak_combine(pvals, sigma):
     """Combine p-values accounting for correlation."""
     qvals = norm.isf(pvals).reshape(len(pvals), 1)
@@ -240,29 +244,6 @@ def zscore_cluster(formula, cluster, covs, coef, robust=False):
     r['p'] = zscore_combine(r['p'], r.pop('corr'))
     r['t'], r['coef'] = r['t'].mean(), r['coef'].mean()
     return r
-
-def wrapper(model_fn, formula, cluster, clin_df, coef, kwargs=None):
-    """wrap the user-defined functions to return everything we expect and
-    to call just OLS when there is a single probe."""
-    if kwargs is None: kwargs = {}
-    t = time.time()
-    if len(cluster) > 1:
-        r = model_fn(formula,
-                cluster,
-                clin_df,
-                coef, **kwargs)
-    else:
-        r = one_cluster(formula, cluster[0], clin_df, coef)
-    r['time'] = time.time() - t
-    r['chrom'] = cluster[0].chrom
-    r['start'] = cluster[0].position - 1
-    r['end'] = cluster[-1].position
-    r['n_sites'] = len(cluster)
-    r['sites'] = [c.spos for c in cluster]
-    r['var'] = coef
-    r['cluster'] = cluster
-    return r
-
 
 # function for comparing with bump_cluster
 # takes the return value of _combine_cluster and returns a single numeric value
@@ -329,6 +310,27 @@ def bump_cluster(formula, cluster, covs, coef, nsims=20000,
     orig['coef'], orig['t'] = orig['coef'].mean(), orig['t'].mean()
     return orig
 
+def wrapper(model_fn, formula, cluster, clin_df, coef, kwargs=None):
+    """wrap the user-defined functions to return everything we expect and
+    to call just OLS when there is a single probe."""
+    if kwargs is None: kwargs = {}
+    t = time.time()
+    if len(cluster) > 1:
+        r = model_fn(formula,
+                cluster,
+                clin_df,
+                coef, **kwargs)
+    else:
+        r = one_cluster(formula, cluster[0], clin_df, coef)
+    r['time'] = time.time() - t
+    r['chrom'] = cluster[0].chrom
+    r['start'] = cluster[0].position - 1
+    r['end'] = cluster[-1].position
+    r['n_sites'] = len(cluster)
+    r['sites'] = [c.spos for c in cluster]
+    r['var'] = coef
+    r['cluster'] = cluster
+    return r
 
 def model_clusters(clust_iter, clin_df, formula, coef, model_fn=gee_cluster,
         pool=None,
@@ -363,7 +365,6 @@ def model_clusters(clust_iter, clin_df, formula, coef, model_fn=gee_cluster,
     kwargs: dict
         arguments sent to `model_fn`
     """
-
     for r in ts.pmap(wrapper, ((model_fn, formula, cluster, clin_df, coef,
                                 kwargs) for cluster in clust_iter), n_cpu,
                                 p=pool):
@@ -371,6 +372,7 @@ def model_clusters(clust_iter, clin_df, formula, coef, model_fn=gee_cluster,
 
 
 class Feature(object):
+
     """
     A feature object that can and likely should be used by all programs that
     call `crystal`. Takes a chromosome, a position and a list of float
@@ -422,6 +424,9 @@ class Feature(object):
                                                    other.position)
 
 class CountFeature(Feature):
+
+    """Feature Class that supports count data."""
+
     def __init__(self, chrom, pos, methylated, counts, rho_min=0.5):
         Feature.__init__(self, chrom, pos, methylated, counts)
         self.counts = counts
