@@ -1,0 +1,12 @@
+Sample	Group	Treatment	Normalized.cell.count	Eos
+38378	Control	Saline	36100	4720
+38387	Control	Saline	20200	202
+38395	Control	Saline	28900	145
+38401	Control	Saline	18700	0
+38474	Control	Saline	77800	0
+38480	MTHFRKO	Saline	74600	746
+38481	MTHFRKO	Saline	23800	1070
+38484	Control	Saline	69200	0
+38490	MTHFRKO	Saline	54000	0
+38492	MTHFRKO	Saline	32400	0
+38493	MTHFRKO	Saline	5920	0
