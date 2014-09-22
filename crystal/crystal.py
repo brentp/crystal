@@ -6,6 +6,7 @@ import sys
 import toolshed as ts
 from itertools import izip
 import time
+import re
 
 import pandas as pd
 import numpy as np
@@ -13,7 +14,7 @@ import scipy.stats as ss
 import patsy
 
 from scipy.stats import norm
-from numpy.linalg import cholesky as chol
+from numpy.linalg import cholesky as chol, lstsq
 
 from statsmodels.api import GEE, GLM, MixedLM, RLM, GLS, OLS, GLSAR
 from statsmodels.genmod.dependence_structures import Exchangeable
@@ -64,9 +65,12 @@ def get_ptc(fit, coef):
         return dict(p=np.nan, t=np.nan, coef=np.nan,
                 covar=fit.model.exog_names[idx[0]])
 
-def one_cluster(formula, feature, covs, coef, robust=False):
+def one_cluster(formula, feature, covs, coef, robust=False,
+        _pat=re.compile("\+\s*CpG")):
     """used when we have a "cluster" with 1 probe."""
     c = covs.copy()
+    # remove the CpG in the formula
+    formula = _pat.sub("", formula)
     if isinstance(feature, CountFeature):
         c['methylation'] = feature.methylated
         c['counts'] = feature.counts
@@ -208,7 +212,8 @@ def zscore_combine(pvals, sigma):
     sz = 1.0 / L * np.sqrt(L + 2 * np.tril(sigma, k=-1).sum())
     return norm.sf(z / sz)
 
-def _combine_cluster(formula, methylations, covs, coef, robust=False):
+def _combine_cluster(formula, methylations, covs, coef, robust=False,
+        _corr=True):
     """function called by z-score and liptak to get pvalues"""
     res = [(RLM if robust else OLS).from_formula(formula, covs).fit()
             for methylation in methylations]
@@ -216,11 +221,15 @@ def _combine_cluster(formula, methylations, covs, coef, robust=False):
                    if par.startswith(coef)][0]
     pvals = np.array([r.pvalues[idx] for r in res], dtype=np.float64)
     pvals[pvals == 1] = 1.0 - 9e-16
-    return dict(t=np.array([r.tvalues[idx] for r in res]),
+    res = dict(t=np.array([r.tvalues[idx] for r in res]),
                 coef=np.array([r.params[idx] for r in res]),
                 covar=res[0].model.exog_names[idx],
-                p=pvals[~np.isnan(pvals)],
-                corr=corr(methylations[~np.isnan(pvals)]))
+                p=pvals[~np.isnan(pvals)])
+    # save some time for bumphunting where we don't need
+    # the correlation.
+    if _corr:
+        res['corr'] = corr(methylations[~np.isnan(pvals)])
+    return res
 
 def bayes_cluster():
     pass
@@ -262,6 +271,16 @@ def coef_t_prod(coefs):
     return np.median([coefs['t'][i] * coefs['coef'][i]
                         for i in range(len(coefs['coef']))])
 
+
+def _cluster_coefs(formula, y, covs, coef):
+    """Fast coefficient calculation for bumping."""
+    X = patsy.dmatrix(formula.split("~")[-1], covs, return_type="dataframe")
+    idx = [i for i, c in enumerate(X.columns) if c.startswith(coef)]
+    assert len(idx) == 1
+    x, resids, rank, s = lstsq(X, y.T)
+    coefs = x[idx[0]]
+    return coefs
+
 def bump_cluster(formula, cluster, covs, coef, nsims=20000,
         value_fn=coef_sum, robust=False):
     """Model clusters by fitting model at each site and then comparing some
@@ -297,11 +316,16 @@ def bump_cluster(formula, cluster, covs, coef, nsims=20000,
             reduced_residuals)])
         assert fakem.shape == methylations.shape
 
-        sim = _combine_cluster(formula, fakem, covs, coef, robust=robust)
-        ccut = value_fn(sim)
+        coefs = _cluster_coefs(formula, fakem, covs, coef)
+        ccut = value_fn(dict(coef=coefs))
+
+        #sim = _combine_cluster(formula, fakem, covs, coef, robust=robust,
+        #        _corr=False)
+        #ccut = value_fn(sim)
+
         ngt += abs(ccut) > abs(obs_coef)
         # sequential monte-carlo.
-        if ngt > 5: break
+        if ngt > 6: break
 
     orig.pop('corr')
     # extra 1 in denom for 0-index
