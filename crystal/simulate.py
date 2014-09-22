@@ -4,6 +4,7 @@ import numpy as np
 import scipy.stats as ss
 from copy import deepcopy
 from collections import defaultdict
+from . import CountFeature
 
 choice = np.random.choice
 
@@ -25,6 +26,8 @@ def simulate_cluster(cluster, w=0, class_order=None, attrs=()):
         which group (0 or 1) each sample belongs to.
 
     """
+    if isinstance(cluster[0], CountFeature) and attrs==():
+        attrs = ('methylated', 'counts')
 
     # copy since we modify the data in-place.
     cluster = [deepcopy(f) for f in cluster]
