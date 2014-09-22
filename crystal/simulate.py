@@ -124,7 +124,7 @@ def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None, seed=
         class_order = np.array(class_order)
         classes = np.unique(class_order)
         assert len(classes) == 2, (classes, "should have 2 unique")
-        classes = {classes[0]: 0, classes[1]}
+        classes = {classes[0]: 0, classes[1]: 1}
         class_order = np.array([classes[c] for c in class_order])
 
     clusts = {}

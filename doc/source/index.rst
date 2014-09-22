@@ -28,6 +28,7 @@ API Docs
    plot
    evaluate
    regions
+   simulate
 
 Introduction
 ============
