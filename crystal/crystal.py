@@ -32,6 +32,7 @@ def long_covs(covs, methylation, **kwargs):
     for k, arr in kwargs.items():
         assert arr.shape == methylation.shape
         cov_rep[k] = np.concatenate(arr)
+    cov_rep.index = np.arange(len(cov_rep), dtype=int)
     return cov_rep
 
 def corr(methylations):
