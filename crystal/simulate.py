@@ -7,7 +7,7 @@ from collections import defaultdict
 
 choice = np.random.choice
 
-def simulate_cluster(cluster, w=0, class_order=None):
+def simulate_cluster(cluster, w=0, class_order=None, attrs=()):
     """Modify the data in existing clusters to create or remove and effect.
 
     Parameters
@@ -35,6 +35,8 @@ def simulate_cluster(cluster, w=0, class_order=None):
         np.random.shuffle(idxs)
         for feature in cluster:
             feature.values = feature.values[idxs]
+            for attr in attrs:
+                setattr(feature, attr, getattr(feature, attr)[idxs])
         return cluster
 
 
@@ -79,6 +81,12 @@ def simulate_cluster(cluster, w=0, class_order=None):
         tmpl = np.array(cluster[j].values[idx_order][l_idxs])
         cluster[j].values[class_order == 0] = tmph
         cluster[j].values[class_order == 1] = tmpl
+        for attr in attrs:
+            vals = getattr(cluster[j], attr)[idx_order]
+            hi_vals = np.array(vals[idx_order][h_idxs])
+            lo_vals = np.array(vals[idx_order][l_idxs])
+            vals[class_order == 0] = hi_vals
+            vals[class_order == 1] = low_vals
 
     return cluster
 
@@ -117,7 +125,7 @@ def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None, seed=
 
     """
     np.random.seed(seed)
-    assert isinstance(list, clust_list), ("need a list due to multiple \
+    assert isinstance(clust_list, list), ("need a list due to multiple \
             iterations")
 
     if class_order is not None:
@@ -127,9 +135,10 @@ def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None, seed=
         classes = {classes[0]: 0, classes[1]: 1}
         class_order = np.array([classes[c] for c in class_order])
 
-    clusts = {}
+    clusts = defaultdict(list)
     for clust in clust_list:
         clusts[len(clust)].append(clust)
+    clusts = dict(clusts)
 
     sim_idxs = {}
     # for each size of clust, choose n random indices based on how
@@ -146,10 +155,15 @@ def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None, seed=
     seen = defaultdict(int)
     for c in clust_list:
         l = len(c)
-        s = seen[l]
-        w = 1 if s in sim_idxs[l] else 0
-        seen[l] += 1
-        if s in sim_idxs:
+        w = 0
+        # need this if block in case we get a cluster longer
+        # than we have in sizes
+        if l in sim_idxs:
+            s = seen[l]
+            w = int(s in sim_idxs[l])
+            seen[l] += 1
+
+        if l in sim_idxs and s in sim_idxs[l]:
             region_fh.write(fmt.format(chrom=c[0].chrom,
                                        start=c[0].position - 1,
                                        end=c[-1].position,
