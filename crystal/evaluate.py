@@ -277,7 +277,7 @@ def plot_alphas(axs, results, colors=None, cutoff=1e-2, labels=None):
     axs[1].set_ylabel('false positives')
 
 
-def plot_roc(ax, r, plot_kwargs):
+def plot_roc(ax, r, plot_kwargs={}):
     """
     Plot ROC for a given result.
 
