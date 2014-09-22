@@ -48,3 +48,39 @@ def real_count_cluster():
 
     covs = pd.read_table('%s/m.covs.txt' % path)
     return covs, cluster
+
+
+def write_cluster(cluster, fh, float_format="%.4f", count_fh=None):
+    """
+    Write a cluster to file.
+
+    Parameters
+    ----------
+
+    cluster : cluster
+              a cluster from aclust (or just a list of features)
+
+    fh : filehandle
+
+    count_fh : filehandle
+               if cluster is of `CountFeature` then a count_fh must be
+               specified so that the counts can be written to file as
+               well.
+
+    """
+
+    fmt = "{chrom}:{position}\t{values}\n"
+    if isinstance(cluster[0], Feature):
+        for f in cluster:
+            fh.write(fmt.format(chrom=f.chrom, position=f.position,
+                    values="\t".join((float_format % v for v in f.values))))
+        return
+
+
+    elif isinstance(cluster[0], CountFeature):
+        assert count_fh is not None
+        for f in cluster:
+            fh.write(fmt.format(chrom=f.chrom, position=f.position,
+                    values="\t".join(f.methylated)))
+            count_fh.write(fmt.format(chrom=f.chrom, position=f.position,
+                    values="\t".join(f.counts)))

@@ -145,7 +145,7 @@ def gee_cluster(formula, cluster, covs, coef, cov_struct=Exchangeable(),
         cov_rep = long_covs(covs, np.array([f.methylated for f in cluster]),
                 counts = np.array([f.counts for f in cluster]))
         res = GEE.from_formula(formula, groups=cov_rep['id'], data=cov_rep,
-            cov_struct=cov_struct, family=family, offset=cov_rep['counts']).fit()
+            cov_struct=cov_struct, family=family).fit()
     else:
         raise Exception("Only guassian and poisson are supported")
 
