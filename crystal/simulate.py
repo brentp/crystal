@@ -1,31 +1,55 @@
 import sys
-from toolshed import nopen
+import toolshed as ts
 import numpy as np
 import scipy.stats as ss
 from copy import deepcopy
+from collections import defaultdict
 
 choice = np.random.choice
 
+def simulate_cluster(cluster, w=0, class_order=None):
+    """Modify the data in existing clusters to create or remove and effect.
 
-def simulate_cluster(cluster, w, n=None, copy=True):
-    """this is the method from the A-clustering paper
-    w = 0 generates random data.
-    n tells how many in each group to simulate, so the
-    data that is sent in should contain at least 2*N.
+    Parameters
+    ----------
+
+    cluster : list of clusters
+              *should* include clusters of length 1.
+
+    w : float
+        w = 0 generates random data. Higher values are
+        more likely to separate the groups.
+
+    class_order : np.array of 0/1
+        list of same length as cluster[*].values indicating
+        which group (0 or 1) each sample belongs to.
+
     """
-    if copy:
-        cluster = [deepcopy(c) for c in cluster]
+
+    # copy since we modify the data in-place.
+    cluster = [deepcopy(f) for f in cluster]
+
+    # make this one faster since we don't need to keep track of high/low
+    if w == 0:
+        idxs = np.arange(len(cluster[0].values))
+        np.random.shuffle(idxs)
+        for feature in cluster:
+            feature.values = feature.values[idxs]
+        return cluster
+
 
     N = len(cluster[0].values)
-    if n is None:
-        assert N % 2 == 0
-        n = N / 2
-    assert 2 * n <= N, (n, N)
+    assert N % 2 == 0
+    n = N / 2
+
+    if class_order is None:
+        class_order = np.zeros_like(cluster[0].values).astype(int)
+        class_order[n:] = 1
 
     n_probes = len(cluster)
     new_data = np.zeros((n_probes, 2 * n))
 
-    # choose a ranomd probe from the set.
+    # choose a random probe from the set.
     # the values across the cluster will be determined
     # by the values in this randomly chose probe.
     i = choice(range(n_probes))#[0] if n_probes > 1 else 0
@@ -51,20 +75,86 @@ def simulate_cluster(cluster, w, n=None, copy=True):
 
     assert len(np.intersect1d(h_idxs, l_idxs)) == 0
     for j in range(n_probes):
-        tmph = cluster[j].values[idx_order][h_idxs]
-        tmpl = cluster[j].values[idx_order][l_idxs]
-        cluster[j].values[:n] = tmph
-        cluster[j].values[n:] = tmpl
+        tmph = np.array(cluster[j].values[idx_order][h_idxs])
+        tmpl = np.array(cluster[j].values[idx_order][l_idxs])
+        cluster[j].values[class_order == 0] = tmph
+        cluster[j].values[class_order == 1] = tmpl
+
     return cluster
 
-def gen_arma(n_probes=20000, n_patients=80, corr=0.2, df=2, scale=0.2):
-    # these parameters are taken from the Bump Hunting Paper
-    from statsmodels.tsa.arima_process import ArmaProcess
-    sigma = 0.5
-    rvs = ss.norm(df, loc=0.05 / sigma, scale=scale).rvs
-    corr = -abs(corr)
-    return np.column_stack([
-        sigma * ArmaProcess([1, corr], [1])
-                           .generate_sample(n_probes=n_probes, distrvs=rvs)
-                           for i in range(n_patients)])
+SIZES = dict.fromkeys(range(1, 9), 100)
+SIZES[2] = SIZES[1] = 200
+
+def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None, seed=42):
+    """Simulate regions and randomize others.
+
+    Parameters
+    ----------
+
+    clust_list : list of clusters
+                 should include clusters of length 1.
+
+    region_fh : filehandle
+                a BED file of true clusters will be written to this
+                file.
+
+    size : dict
+           keys of the clust_size and values of how many clusters
+           to create of that size. Default is to create 100 of each
+           size from 3 to 8 and 200 clusters of size one and 2. All
+           others are randomized.
+
+    classes : np.array
+        same length as cluster[*].values indicating
+        which group each sample belongs to.
+
+    seed: int
+
+    Returns
+    -------
+
+    generates clusters in the same order as clust_list.
+
+    """
+    np.random.seed(seed)
+    assert isinstance(list, clust_list), ("need a list due to multiple \
+            iterations")
+
+    if class_order is not None:
+        class_order = np.array(class_order)
+        classes = np.unique(class_order)
+        assert len(classes) == 2, (classes, "should have 2 unique")
+        classes = {classes[0]: 0, classes[1]}
+        class_order = np.array([classes[c] for c in class_order])
+
+    clusts = {}
+    for clust in clust_list:
+        clusts[len(clust)].append(clust)
+
+    sim_idxs = {}
+    # for each size of clust, choose n random indices based on how
+    # many of that cluster we saw.
+    for size, n in sizes.items():
+        idxs = np.arange(len(clusts[size]))
+        # get the indexes of the clusters we want
+        sim_idxs[size] = frozenset(np.random.choice(idxs, size=min(n,
+                                                    len(idxs)), replace=False))
+
+    fmt = "{chrom}\t{start}\t{end}\t{n_probes}\n"
+    region_fh.write(ts.fmt2header(fmt))
+
+    seen = defaultdict(int)
+    for c in clust_list:
+        l = len(c)
+        s = seen[l]
+        w = 1 if s in sim_idxs[l] else 0
+        seen[l] += 1
+        if s in sim_idxs:
+            region_fh.write(fmt.format(chrom=c[0].chrom,
+                                       start=c[0].position - 1,
+                                       end=c[-1].position,
+                                       n_probes=len(c)))
+        yield simulate_cluster(c, w, class_order)
+
+    region_fh.flush()
 
