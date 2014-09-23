@@ -18,7 +18,8 @@ from numpy.linalg import cholesky as chol, lstsq
 
 from statsmodels.api import GEE, GLM, MixedLM, RLM, GLS, OLS, GLSAR
 from statsmodels.genmod.dependence_structures import Exchangeable, Independence
-from statsmodels.genmod.families import Gaussian, Poisson
+from statsmodels.genmod.families import (Gaussian, Poisson,
+        NegativeBinomial as NB)
 from statsmodels.discrete.discrete_model import NegativeBinomial
 
 def long_covs(covs, methylation, **kwargs):
@@ -61,7 +62,7 @@ def get_ptc(fit, coef):
             't': fit.tvalues[idx[0]],
             'coef': fit.params[idx[0]],
             'covar': fit.model.exog_names[idx[0]]}
-    except ValueError:
+    except (ValueError, np.linalg.linalg.LinAlgError) as e:
         return dict(p=np.nan, t=np.nan, coef=np.nan,
                 covar=fit.model.exog_names[idx[0]])
 
@@ -146,7 +147,7 @@ def gee_cluster(formula, cluster, covs, coef, cov_struct=Exchangeable(),
         cov_rep = long_covs(covs, np.array([f.values for f in cluster]))
         res = GEE.from_formula(formula, groups=cov_rep['id'], data=cov_rep,
             cov_struct=cov_struct, family=family).fit()
-    elif isinstance(family, Poisson):
+    elif isinstance(family, (NB, Poisson)):
         cov_rep = long_covs(covs, np.array([f.methylated for f in cluster]),
                 counts = np.array([f.counts for f in cluster]))
         res = GEE.from_formula(formula, groups=cov_rep['id'], data=cov_rep,
