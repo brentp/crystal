@@ -75,8 +75,9 @@ def one_cluster(formula, feature, covs, coef, robust=False,
     if isinstance(feature, CountFeature):
         c['methylation'] = feature.methylated
         c['counts'] = feature.counts
+        c = c[c['counts'] > 0]
         return get_ptc(GLM.from_formula(formula, data=c,
-                                        offset=c['counts'],
+                                        exposure=c['counts'],
                                         family=Poisson()).fit(), coef)
     else:
         c['methylation'] = feature.values
@@ -91,7 +92,7 @@ def nb_cluster(formula, cluster, covs, coef):
     try:
         # intentionally flipped so that we model count ~ disease with
         # methylated offset.
-        res = [NegativeBinomial.from_formula(formula, covs, offset=count)\
+        res = [NegativeBinomial.from_formula(formula, covs, offset=np.log(count))\
                .fit(disp=0) for methylation, count in izip(methylated, counts)]
     except:
         return dict(t=np.nan, coef=np.nan, covar="NA", p=np.nan, corr=np.nan)
@@ -151,7 +152,7 @@ def gee_cluster(formula, cluster, covs, coef, cov_struct=Exchangeable(),
         cov_rep = long_covs(covs, np.array([f.methylated for f in cluster]),
                 counts = np.array([f.counts for f in cluster]))
         res = GEE.from_formula(formula, groups=cov_rep['id'], data=cov_rep,
-            cov_struct=cov_struct, family=family, offset=cov_rep['counts']).fit()
+            cov_struct=cov_struct, family=family, offset=np.log(cov_rep['counts'])).fit()
     else:
         raise Exception("Only guassian and poisson are supported")
 
