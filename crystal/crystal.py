@@ -17,7 +17,7 @@ from scipy.stats import norm
 from numpy.linalg import cholesky as chol, lstsq
 
 from statsmodels.api import GEE, GLM, MixedLM, RLM, GLS, OLS, GLSAR
-from statsmodels.genmod.dependence_structures import Exchangeable
+from statsmodels.genmod.dependence_structures import Exchangeable, Independence
 from statsmodels.genmod.families import Gaussian, Poisson
 from statsmodels.discrete.discrete_model import NegativeBinomial
 
@@ -75,7 +75,8 @@ def one_cluster(formula, feature, covs, coef, robust=False,
         c['methylation'] = feature.methylated
         c['counts'] = feature.counts
         return get_ptc(GLM.from_formula(formula, data=c,
-                                        offset=c['counts']).fit(), coef)
+                                        offset=c['counts'],
+                                        family=Poisson()).fit(), coef)
     else:
         c['methylation'] = feature.values
         res = (RLM if robust else OLS).from_formula(formula, data=c).fit()
@@ -127,7 +128,7 @@ def gee_cluster(formula, cluster, covs, coef, cov_struct=Exchangeable(),
 
     cov_struct: object
         one of the covariance structures provided by statsmodels.
-        Likely either Exchangeable() or Independent()
+        Likely either Exchangeable() or Independence()
 
     family: object
         one of the familyies provided by statsmodels. If Guassian(),
@@ -149,7 +150,7 @@ def gee_cluster(formula, cluster, covs, coef, cov_struct=Exchangeable(),
         cov_rep = long_covs(covs, np.array([f.methylated for f in cluster]),
                 counts = np.array([f.counts for f in cluster]))
         res = GEE.from_formula(formula, groups=cov_rep['id'], data=cov_rep,
-            cov_struct=cov_struct, family=family).fit()
+            cov_struct=cov_struct, family=family, offset=cov_rep['counts']).fit()
     else:
         raise Exception("Only guassian and poisson are supported")
 
@@ -257,7 +258,7 @@ def zscore_cluster(formula, cluster, covs, coef, robust=False):
 
 # function for comparing with bump_cluster
 # takes the return value of _combine_cluster and returns a single numeric value
-def coef_sum(c, cutoff=0.005):
+def coef_sum(c, cutoff=0.01):
     coefs = c['coef']
     return sum(min(0, c + cutoff) if c < 0 else max(0, c - cutoff) for c in coefs)
 
