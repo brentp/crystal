@@ -151,7 +151,8 @@ def gee_cluster(formula, cluster, covs, coef, cov_struct=Exchangeable(),
         cov_rep = long_covs(covs, np.array([f.methylated for f in cluster]),
                 counts = np.array([f.counts for f in cluster]))
         res = GEE.from_formula(formula, groups=cov_rep['id'], data=cov_rep,
-            cov_struct=cov_struct, family=family, offset=cov_rep['counts']).fit()
+                               cov_struct=cov_struct, family=family,
+                               offset=np.log(cov_rep['counts'])).fit()
     else:
         raise Exception("Only guassian and poisson are supported")
 
@@ -173,11 +174,17 @@ def glsar_cluster(formula, cluster, covs, coef, rho=6):
     res = GLSAR.from_formula(formula, data=cov_rep, rho=rho).iterative_fit(maxiter=5)
     return get_ptc(res, coef)
 
-def gls_cluster(formula, methylation, covs, coef):
+def gls_cluster(formula, cluster, covs, coef):
+    methylation = np.array([f.values for f in cluster])
     # TODO: currently this is very, very slow
     cov_rep = long_covs(covs, methylation)
-    z = np.cov(methylation.T)
-    sigma = np.repeat(np.repeat(z, len(methylation), axis=0), len(methylation), axis=1)
+    c = np.array(pd.DataFrame(methylation).corr())
+    n = methylation.shape[0]
+    sigma = np.repeat(np.repeat(c, n, axis=0), n, axis=1)
+
+    sigma[np.tril_indices_from(sigma)] = 0
+    sigma[np.diag_indices_from(sigma)] = 1
+
     res = GLS.from_formula(formula, data=cov_rep, sigma=sigma).fit()
     return get_ptc(res, coef)
 
