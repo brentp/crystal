@@ -7,7 +7,7 @@ pandas
 patsy>=0.3
 matplotlib
 # until statsmodels 0.6
-git+https://github.com/statsmodels/statsmodels@master#egg=statsmodels
+git+https://github.com/statsmodels/statsmodels@e27e5dce59c4040d0a98f87528534bad5c17ad50#egg=statsmodels
 seaborn>=0.4
 numpydoc
 docutils
