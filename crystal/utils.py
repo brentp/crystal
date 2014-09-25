@@ -1,3 +1,6 @@
+from collections import defaultdict
+
+import toolshed as ts
 import numpy as np
 import pandas as pd
 from .crystal import Feature, CountFeature
@@ -84,3 +87,41 @@ def write_cluster(cluster, fh, float_format="%.4f", count_fh=None):
                     values="\t".join(f.methylated)))
             count_fh.write(fmt.format(chrom=f.chrom, position=f.position,
                     values="\t".join(f.counts)))
+
+def roc_out(p_bed, p_col, truth_region_bed, exclude=('-1', 'NA', 'nan')):
+    """Create ROC for a bed file of p-values given known truth regions.
+
+    Parameters
+    ----------
+
+    p_bed : file
+
+    p_col : int
+            column containing the p-value from `p_bed`
+
+    truth_region_bed : file
+                       contains the true regions
+    """
+    p_col -= 1 # 0-based
+
+    regions = defaultdict(list)
+    for toks in ts.reader(truth_region_bed, header=False):
+        if not (toks[1] + toks[2]).isdigit(): continue
+        regions[toks[0]].append((int(toks[1]), int(toks[2])))
+
+    truths = []
+    vals = []
+    for toks in ts.reader(p_bed, header=False):
+        if not (toks[1] + toks[2]).isdigit(): continue
+        reg = regions[toks[0]]
+
+        s, e = int(toks[1]), int(toks[2])
+
+        p = toks[p_col]
+        if p in exclude: continue
+        vals.append(1.0 - float(p))
+
+        truth = any(rs <= s <= re or rs <= e <= re for rs, re in reg)
+        truths.append(truth)
+
+    return np.array(truths).astype(int), np.array(vals)
