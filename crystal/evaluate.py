@@ -290,10 +290,11 @@ def plot_roc(ax, r, plot_kwargs={}):
         return value from :func:`~evaluate_method`
     """
     from sklearn.metrics import roc_curve, auc
-    truth = np.array([1] * len(r['true-ps']) + [0] * len(r['null-ps']))
-    vals = 1 - r['ps']
-    vals = vals[~np.isnan(vals)]
-    truth = truth[~np.isnan(r['ps'])]
+    t, f = r['true-ps'], r['null-ps']
+    t, f = t[~np.isnan(t)], f[~np.isnan(f)]
+    truth = np.array([1] * len(t) + [0] * len(f))
+    ps = np.concatenate((t, f))
+    vals = 1 - ps
     fpr, tpr, _ = roc_curve(truth, vals)
     label = ("AUC: %.4f | " % auc(fpr, tpr)) + r['label']
     ax.plot(fpr[1:], tpr[1:], label=label, **plot_kwargs)
