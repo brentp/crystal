@@ -94,7 +94,7 @@ def cluster_bediter(modeled_clusters):
         c = m['cluster']
         yield (c[0].chrom, c[0].position - 1, c[-1].position, m['p'], len(c))
 
-def evaluate_modeled_regions(bed_iter, regions, label='', ax=None, **plot_kwargs):
+def evaluate_modeled_regions(bed_iter, regions, size=None, label='', ax=None, **plot_kwargs):
     """
     Evaluate the accuracy of a method (`model_fn`) by comparing how many
     fall into a set of "truth" regions vs. outside.
@@ -107,7 +107,10 @@ def evaluate_modeled_regions(bed_iter, regions, label='', ax=None, **plot_kwargs
         can be regions or features.
 
     regions : file
-        BED file of regions we expect to find DMRs.
+        BED file of regions.
+
+    size : int
+        which size region to test. default (None) is all sizes.
 
     label : str
         label for plot legend
@@ -115,22 +118,23 @@ def evaluate_modeled_regions(bed_iter, regions, label='', ax=None, **plot_kwargs
     ax : axis
 
     """
-    tru_regions = defaultdict(list)
-    fals_regions = defaultdict(list)
+    # TODO: implement size
+
+    true_regions = defaultdict(list)
+    false_regions = defaultdict(list)
     for i, toks in enumerate(ts.reader(regions, header=False)):
         # see if it's a header.
         if i == 0 and not (toks[1] + toks[2]).isdigit(): continue
         # seen used keep track of the regions we've found
         chrom, start, end = toks[0], int(toks[1]), int(toks[2])
-        if len(toks) < 3 or toks[3][:3] == "tru":
-            tru_regions[chrom].append((start, end))
+        if len(toks) <= 3 or toks[3][:3] == "tru":
+            true_regions[chrom].append((start, end))
         else:
-            fals_regions[chrom].append((start, end))
+            false_regions[chrom].append((start, end))
 
 
     seen_true = defaultdict(set)
     seen_false = defaultdict(set)
-
 
     def is_in(b, regions, check_regions):
         r = regions[b[0]]
@@ -142,15 +146,21 @@ def evaluate_modeled_regions(bed_iter, regions, label='', ax=None, **plot_kwargs
                 found += 1
         return found
 
+    no_false = len(false_regions) == 0
+
     truths = []
     ps = []
     for b in bed_iter:
         chrom, start, end, p, n_sites = b[:5]
         assert isinstance(b[1], int)
-        n_true = is_in(b, tru_regions, seen_true)
+        n_true = is_in(b, true_regions, seen_true)
         # also keep track of which false regions have been seen, but don't use
         # the return value
-        n_false = is_in(b, fals_regions, seen_false)
+        if no_false:
+            n_false = n_sites - n_true
+        else:
+            n_false = is_in(b, false_regions, seen_false)
+
         # can't have this assertion because other tools find things outside the
         # given data.
         #assert n_true + n_false == n_sites, (n_true, n_false, b)
@@ -164,8 +174,8 @@ def evaluate_modeled_regions(bed_iter, regions, label='', ax=None, **plot_kwargs
     # now we need to add in the missed trues and missed falses.
     #"""
     one = 1 - 1e-25
-    for chrom in tru_regions:
-        regs = set(tru_regions[chrom])
+    for chrom in true_regions:
+        regs = set(true_regions[chrom])
         seen = seen_true[chrom]
         assert not seen - regs
         missed = regs - seen
@@ -177,8 +187,8 @@ def evaluate_modeled_regions(bed_iter, regions, label='', ax=None, **plot_kwargs
             truths.extend([1])
 
     # blah code duplication.
-    for chrom in fals_regions:
-        regs = set(fals_regions[chrom])
+    for chrom in false_regions:
+        regs = set(false_regions[chrom])
         seen = seen_false[chrom]
         assert not seen - regs
         missed = regs - seen
