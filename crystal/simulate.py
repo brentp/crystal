@@ -106,8 +106,10 @@ def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None, seed=
                  should include clusters of length 1.
 
     region_fh : filehandle
-                a BED file of true clusters will be written to this
-                file.
+                a BED file of all position will be written to this
+                file. The 4th column will indicate true/false indicating
+                if it was simulated to have a difference. The fifth
+                column will indicate the size of the cluster it was in.
 
     size : dict
            keys of the clust_size and values of how many clusters
@@ -152,7 +154,7 @@ def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None, seed=
         sim_idxs[size] = frozenset(np.random.choice(idxs, size=min(n,
                                                     len(idxs)), replace=False))
 
-    fmt = "{chrom}\t{start}\t{end}\t{n_probes}\n"
+    fmt = "{chrom}\t{start}\t{end}\t{truth}\t{size}\n"
     region_fh.write(ts.fmt2header(fmt))
 
     seen = defaultdict(int)
@@ -166,11 +168,13 @@ def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None, seed=
             w = int(s in sim_idxs[l])
             seen[l] += 1
 
-        if l in sim_idxs and s in sim_idxs[l]:
-            region_fh.write(fmt.format(chrom=c[0].chrom,
-                                       start=c[0].position - 1,
-                                       end=c[-1].position,
-                                       n_probes=len(c)))
+        truth = l in sim_idxs and s in sim_idxs[l]
+        for f in c:
+            region_fh.write(fmt.format(chrom=f.chrom,
+                                       start=f.position - 1,
+                                       end=f.position,
+                                       truth="true" if truth else "false",
+                                       size=len(c)))
         yield simulate_cluster(c, w, class_order)
 
     region_fh.flush()

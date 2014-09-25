@@ -6,6 +6,7 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 import sys
+from sklearn.metrics import roc_curve, auc
 
 
 
@@ -88,6 +89,111 @@ def evaluate_replication(discovery_clusters, replication_feats,
     assert len(r['replication_p']) == len(r['discovery_p'])
     return r
 
+def cluster_bediter(modeled_clusters):
+    for m in modeled_clusters:
+        c = m['cluster']
+        yield (c[0].chrom, c[0].position - 1, c[-1].position, m['p'], len(c))
+
+def evaluate_modeled_regions(bed_iter, true_regions, label='', ax=None, **plot_kwargs):
+    """
+    Evaluate the accuracy of a method (`model_fn`) by comparing how many
+    fall into a set of "truth" regions vs. outside.
+
+    Parameters
+    ----------
+
+    bed_iter : iterable
+        iterable with each element of (chrom, start, end, p-value, n_sites)
+        can be regions or features.
+
+    true_regions : file
+        BED file of regions we expect to find DMRs.
+
+    label : str
+        label for plot legend
+
+    ax : axis
+
+    """
+    tru_regions = defaultdict(list)
+    fals_regions = defaultdict(list)
+    for i, toks in enumerate(ts.reader(true_regions, header=False)):
+        # see if it's a header.
+        if i == 0 and not (toks[1] + toks[2]).isdigit(): continue
+        # seen used keep track of the regions we've found
+        chrom, start, end = toks[0], int(toks[1]), int(toks[2])
+        region_len = 1 if len(toks) < 3 else int(toks[4])
+        if len(toks) < 3 or toks[3][:3] == "tru":
+            tru_regions[chrom].append((start, end, region_len))
+        else:
+            fals_regions[chrom].append((start, end, region_len))
+
+
+    seen_true = defaultdict(set)
+    seen_false = defaultdict(set)
+
+    def is_in(b, regions, check_regions):
+        r = regions[b[0]]
+        found = 0
+        for s, e, rl in r:
+            if s <= b[2] <= e or s <= b[1] <= e:
+                # keep track of the regions that have been seen
+                check_regions[b[0]].add((s, e, rl))
+                found += 1
+        return found
+
+    truths = []
+    ps = []
+    for b in bed_iter:
+        chrom, start, end, p, n_sites = b[:5]
+        assert isinstance(b[1], int)
+        n_true = is_in(b, tru_regions, seen_true)
+        # also keep track of which false regions have been seen, but don't use
+        # the return value
+        n_false = is_in(b, fals_regions, seen_false)
+
+        # here, we multiply because each region can overlap multiple sites
+        truths.extend([1] * n_true)
+        truths.extend([0] * n_false)
+        ps.extend([p] * (n_true + n_false))
+
+
+    # now we need to add in the missed trues and missed falses.
+    #"""
+    one = 1 - 1e-25
+    for chrom in tru_regions:
+        regs = set(tru_regions[chrom])
+        seen = seen_true[chrom]
+        assert not seen - regs
+        missed = regs - seen
+        for s, e, rl in missed:
+            # add a p-value of 1 for missed regions
+            # do not multiply by rl because we have a row for each site in each
+            # region already.
+            ps.extend([one]) # * rl)
+            truths.extend([1]) # * rl)
+
+    # blah code duplication.
+    for chrom in fals_regions:
+        regs = set(fals_regions[chrom])
+        seen = seen_false[chrom]
+        assert not seen - regs
+        missed = regs - seen
+        for s, e, rl in missed:
+            ps.extend([one]) # * rl)
+            truths.extend([0]) # * rl)
+    #"""
+    print len(truths)
+    truths, ps = np.array(truths), np.array(ps)
+    if ax is None:
+        return truths, ps
+
+    fpr, tpr, _ = roc_curve(truths[~np.isnan(ps)], 1. - ps[~np.isnan(ps)])
+    label = ("AUC: %.4f | " % auc(fpr, tpr)) + label
+    ax.plot(fpr[1:], tpr[1:], label=label, **plot_kwargs)
+    ax.set_xlabel('1 - specificity')
+    ax.set_ylabel('sensitivity')
+    return truths, ps
 
 def evaluate_regions(clust_list, true_regions, df, formula, coef, model_fn,
         pool=None, kwargs=None):
@@ -131,8 +237,9 @@ def evaluate_regions(clust_list, true_regions, df, formula, coef, model_fn,
         # see if it's a header.
         if i == 0 and not (toks[1] + toks[2]).isdigit(): continue
         # seen used keep track of the regions we've found
-        chrom, start, end = toks[0], int(toks[1]), int(toks[2])
-        regions[chrom].append((start, end, (chrom, start, end)))
+        if len(toks) < 3 or toks[3] == "true":
+            chrom, start, end = toks[0], int(toks[1]), int(toks[2])
+            regions[chrom].append((start, end, (chrom, start, end)))
 
     def is_in(c, regions=regions):
         r = regions[c[0].chrom]
@@ -289,7 +396,6 @@ def plot_roc(ax, r, plot_kwargs={}):
     r: dict
         return value from :func:`~evaluate_method`
     """
-    from sklearn.metrics import roc_curve, auc
     t, f = r['true-ps'], r['null-ps']
     t, f = t[~np.isnan(t)], f[~np.isnan(f)]
     truth = np.array([1] * len(t) + [0] * len(f))
