@@ -90,8 +90,6 @@ def nb_cluster(formula, cluster, covs, coef):
     methylated = np.array([f.methylated for f in cluster])
     counts = np.array([f.counts for f in cluster])
     try:
-        # intentionally flipped so that we model count ~ disease with
-        # methylated offset.
         res = [NegativeBinomial.from_formula(formula, covs, offset=np.log(count))\
                .fit(disp=0) for methylation, count in izip(methylated, counts)]
     except:
