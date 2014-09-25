@@ -94,7 +94,7 @@ def cluster_bediter(modeled_clusters):
         c = m['cluster']
         yield (c[0].chrom, c[0].position - 1, c[-1].position, m['p'], len(c))
 
-def evaluate_modeled_regions(bed_iter, true_regions, label='', ax=None, **plot_kwargs):
+def evaluate_modeled_regions(bed_iter, regions, label='', ax=None, **plot_kwargs):
     """
     Evaluate the accuracy of a method (`model_fn`) by comparing how many
     fall into a set of "truth" regions vs. outside.
@@ -106,7 +106,7 @@ def evaluate_modeled_regions(bed_iter, true_regions, label='', ax=None, **plot_k
         iterable with each element of (chrom, start, end, p-value, n_sites)
         can be regions or features.
 
-    true_regions : file
+    regions : file
         BED file of regions we expect to find DMRs.
 
     label : str
@@ -117,28 +117,28 @@ def evaluate_modeled_regions(bed_iter, true_regions, label='', ax=None, **plot_k
     """
     tru_regions = defaultdict(list)
     fals_regions = defaultdict(list)
-    for i, toks in enumerate(ts.reader(true_regions, header=False)):
+    for i, toks in enumerate(ts.reader(regions, header=False)):
         # see if it's a header.
         if i == 0 and not (toks[1] + toks[2]).isdigit(): continue
         # seen used keep track of the regions we've found
         chrom, start, end = toks[0], int(toks[1]), int(toks[2])
-        region_len = 1 if len(toks) < 3 else int(toks[4])
         if len(toks) < 3 or toks[3][:3] == "tru":
-            tru_regions[chrom].append((start, end, region_len))
+            tru_regions[chrom].append((start, end))
         else:
-            fals_regions[chrom].append((start, end, region_len))
+            fals_regions[chrom].append((start, end))
 
 
     seen_true = defaultdict(set)
     seen_false = defaultdict(set)
 
+
     def is_in(b, regions, check_regions):
         r = regions[b[0]]
         found = 0
-        for s, e, rl in r:
-            if s <= b[2] <= e or s <= b[1] <= e:
+        for s, e in r:
+            if b[2] >= s and b[1] <= e:
                 # keep track of the regions that have been seen
-                check_regions[b[0]].add((s, e, rl))
+                check_regions[b[0]].add((s, e))
                 found += 1
         return found
 
@@ -151,6 +151,9 @@ def evaluate_modeled_regions(bed_iter, true_regions, label='', ax=None, **plot_k
         # also keep track of which false regions have been seen, but don't use
         # the return value
         n_false = is_in(b, fals_regions, seen_false)
+        # can't have this assertion because other tools find things outside the
+        # given data.
+        #assert n_true + n_false == n_sites, (n_true, n_false, b)
 
         # here, we multiply because each region can overlap multiple sites
         truths.extend([1] * n_true)
@@ -166,12 +169,12 @@ def evaluate_modeled_regions(bed_iter, true_regions, label='', ax=None, **plot_k
         seen = seen_true[chrom]
         assert not seen - regs
         missed = regs - seen
-        for s, e, rl in missed:
+        for s, e in missed:
             # add a p-value of 1 for missed regions
-            # do not multiply by rl because we have a row for each site in each
+            # do not multiply by length because we have a row for each site in each
             # region already.
-            ps.extend([one]) # * rl)
-            truths.extend([1]) # * rl)
+            ps.extend([one])
+            truths.extend([1])
 
     # blah code duplication.
     for chrom in fals_regions:
@@ -179,9 +182,9 @@ def evaluate_modeled_regions(bed_iter, true_regions, label='', ax=None, **plot_k
         seen = seen_false[chrom]
         assert not seen - regs
         missed = regs - seen
-        for s, e, rl in missed:
-            ps.extend([one]) # * rl)
-            truths.extend([0]) # * rl)
+        for s, e in missed:
+            ps.extend([one])
+            truths.extend([0])
     #"""
     print len(truths)
     truths, ps = np.array(truths), np.array(ps)
