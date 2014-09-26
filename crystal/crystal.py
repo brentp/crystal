@@ -66,8 +66,10 @@ def get_ptc(fit, coef):
         return dict(p=np.nan, t=np.nan, coef=np.nan,
                 covar=fit.model.exog_names[idx[0]])
 
+from statsmodels.tools.sm_exceptions import PerfectSeparationError
+
 def one_cluster(formula, feature, covs, coef, robust=False,
-        _pat=re.compile("\+\s*CpG")):
+                _pat=re.compile("\+\s*CpG")):
     """used when we have a "cluster" with 1 probe."""
     c = covs.copy()
     # remove the CpG in the formula
@@ -76,9 +78,12 @@ def one_cluster(formula, feature, covs, coef, robust=False,
         c['methylation'] = feature.methylated
         c['counts'] = feature.counts
         c = c[c['counts'] > 0]
-        return get_ptc(GLM.from_formula(formula, data=c,
+        try:
+            return get_ptc(GLM.from_formula(formula, data=c,
                                         exposure=c['counts'],
                                         family=Poisson()).fit(), coef)
+        except PerfectSeparationError:
+            return dict(p=np.nan, t=np.nan, coef=np.nan, covar=coef)
     else:
         c['methylation'] = feature.values
         res = (RLM if robust else OLS).from_formula(formula, data=c).fit()
@@ -461,7 +466,7 @@ class CountFeature(Feature):
     """Feature Class that supports count data."""
 
     def __init__(self, chrom, pos, methylated, counts, rho_min=0.5):
-        Feature.__init__(self, chrom, pos, methylated, counts)
+        Feature.__init__(self, chrom, pos, methylated, counts, rho_min=rho_min)
         self.counts = counts
         # use ratios for correlation.
         self.values = methylated / counts.astype(float)
