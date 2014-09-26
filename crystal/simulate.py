@@ -5,10 +5,37 @@ import scipy.stats as ss
 from copy import deepcopy
 from collections import defaultdict
 from . import CountFeature
+from statsmodels.genmod.families import Poisson
+
+SIZES = dict.fromkeys([1, 2] + range(4, 12, 2), 100)
+SIZES[2] = SIZES[1] = 200
+
+def rr_cluster(cluster, covs, formula="methylation ~ age"):
+    """Set cluster values to reduced-residuals."""
+    cluster = deepcopy(cluster)
+    from statsmodels.formula.api import ols, glm
+
+    if isinstance(cluster[0], CountFeature):
+        for f in cluster:
+            covs['methylation'] = f.methylated
+            f.methylated[:] = np.round(glm(formula,
+                                           covs,
+                                           exposure=f.counts,
+                                           family=Poisson()
+                                          ).fit().resid
+                                       ).astype(int)
+            f.values[:] = f.methylated.astype(float) / f.counts
+    else:
+        for f in cluster:
+            covs['methylation'] = f.values
+            f.values[:] = ols(formula, covs).fit().resid
+    return cluster
+
 
 choice = np.random.choice
 
-def simulate_cluster(cluster, w=0, class_order=None, attrs=()):
+def simulate_cluster(cluster, w=0, class_order=None, attrs=(),
+                     get_reduced_residuals=None, grr_args=()):
     """Modify the data in existing clusters to create or remove and effect.
 
     Parameters
@@ -25,12 +52,18 @@ def simulate_cluster(cluster, w=0, class_order=None, attrs=()):
         list of same length as cluster[*].values indicating
         which group (0 or 1) each sample belongs to.
 
+    get_reduced_residuals : function
+        optional, see :func:`~simulate_regions`
+
     """
     if isinstance(cluster[0], CountFeature) and attrs==():
         attrs = ('methylated', 'counts')
 
     # copy since we modify the data in-place.
-    cluster = [deepcopy(f) for f in cluster]
+    if get_reduced_residuals is None:
+        cluster = [deepcopy(f) for f in cluster]
+    else:
+        cluster = get_reduced_residuals(cluster, *grr_args)
 
     # make this one faster since we don't need to keep track of high/low
     if w == 0:
@@ -93,29 +126,28 @@ def simulate_cluster(cluster, w=0, class_order=None, attrs=()):
 
     return cluster
 
-SIZES = dict.fromkeys(range(1, 9), 100)
-SIZES[2] = SIZES[1] = 200
 
-def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None, seed=42):
+def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None,
+        seed=42, get_reduced_residuals=None, get_reduced_residuals_args=()):
     """Simulate regions and randomize others.
 
     Parameters
     ----------
 
     clust_list : list of clusters
-                 should include clusters of length 1.
+        should include clusters of length 1.
 
     region_fh : filehandle
-                a BED file of all position will be written to this
-                file. The 4th column will indicate true/false indicating
-                if it was simulated to have a difference. The fifth
-                column will indicate the size of the cluster it was in.
+        a BED file of all position will be written to this
+        file. The 4th column will indicate true/false indicating
+        if it was simulated to have a difference. The fifth
+        column will indicate the size of the cluster it was in.
 
     size : dict
-           keys of the clust_size and values of how many clusters
-           to create of that size. Default is to create 100 of each
-           size from 3 to 8 and 200 clusters of size one and 2. All
-           others are randomized.
+        keys of the clust_size and values of how many clusters
+        to create of that size. Default is to create 100 of each
+        size from 3 to 8 and 200 clusters of size one and 2. All
+        others are randomized.
 
     classes : np.array
         same length as cluster[*].values indicating
@@ -123,10 +155,24 @@ def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None, seed=
 
     seed: int
 
+    get_reduced_residuals : function
+        If this parameter is None, then they values are shuffled as they
+        are received.
+        A function that accepts a cluster and returns residuals of the reduced
+        model. e.g. if the full model of interest is:
+            methylation ~ disease + age + gender
+        the reduced model would be:
+            methylation ~ age + gender
+        so that only the residuals of the reduced model are shuffled and the
+        other effects should remain. This will implement the bootsrap for
+        linear models from Efron and Tibshirani.
+        An Example function would be: :func:`~rr_cluster`
+
+
     Returns
     -------
 
-    generates clusters in the same order as clust_list.
+    generator of clusters in the same order as clust_list.
 
     """
     np.random.seed(seed)
@@ -175,7 +221,7 @@ def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None, seed=
                                        end=f.position,
                                        truth="true" if truth else "false",
                                        size=len(c)))
-        yield simulate_cluster(c, w, class_order)
+        yield simulate_cluster(c, w, class_order, get_reduced_residuals)
 
     region_fh.flush()
 
