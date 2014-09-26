@@ -34,7 +34,7 @@ def rr_cluster(cluster, covs, formula="methylation ~ age"):
 
 choice = np.random.choice
 
-def simulate_cluster(cluster, w=0, class_order=None, attrs=(),
+def simulate_cluster(cluster, w=0, class_order=None,
                      get_reduced_residuals=None, grr_args=()):
     """Modify the data in existing clusters to create or remove and effect.
 
@@ -56,8 +56,10 @@ def simulate_cluster(cluster, w=0, class_order=None, attrs=(),
         optional, see :func:`~simulate_regions`
 
     """
-    if isinstance(cluster[0], CountFeature) and attrs==():
+    if isinstance(cluster[0], CountFeature):
         attrs = ('methylated', 'counts')
+    else:
+        attrs = []
 
     # copy since we modify the data in-place.
     if get_reduced_residuals is None:
@@ -77,15 +79,22 @@ def simulate_cluster(cluster, w=0, class_order=None, attrs=(),
 
 
     N = len(cluster[0].values)
-    assert N % 2 == 0
-    n = N / 2
+    nH, r = divmod(N, 2)
+    nL = nH + 1
+
 
     if class_order is None:
         class_order = np.zeros_like(cluster[0].values).astype(int)
-        class_order[n:] = 1
+        class_order[nH:] = 1
+
+    else:
+        nL = (class_order == 0).sum()
+        nH = (class_order == 1).sum()
+
+    assert nL + nH == N
 
     n_probes = len(cluster)
-    new_data = np.zeros((n_probes, 2 * n))
+    new_data = np.zeros((n_probes, N))
 
     # choose a random probe from the set.
     # the values across the cluster will be determined
@@ -99,30 +108,32 @@ def simulate_cluster(cluster, w=0, class_order=None, attrs=(),
     # as well.
     idx_order = np.argsort(c.values)
 
+    # HI
     ords = np.arange(1, N + 1) / (N + 1.0)
     ords = (1.0 - ords)**w
-    h_idxs = choice(idxs, replace=False, p=ords/ords.sum(), size=n)
+    h_idxs = choice(idxs, replace=False, p=ords/ords.sum(), size=nH)
 
-    idxs = np.setdiff1d(idxs, h_idxs, assume_unique=True)
-    idxs.sort()
+    # LO
+    l_idxs = np.setdiff1d(idxs, h_idxs, assume_unique=True)
+    l_idxs.sort()
 
-    ords = np.arange(1, N + 1 - n) / (N + 1.0 - n)
-    assert ords.shape == idxs.shape
+    ords = np.arange(1, nL + 1.) / (nL + 1.0)
+    assert ords.shape == l_idxs.shape
     ords = (ords)**w
-    l_idxs = choice(idxs, replace=False, p=ords/ords.sum(), size=n)
+    l_idxs = choice(l_idxs, replace=False, p=ords/ords.sum(), size=nL)
 
     assert len(np.intersect1d(h_idxs, l_idxs)) == 0
     for j in range(n_probes):
         tmph = np.array(cluster[j].values[idx_order][h_idxs])
         tmpl = np.array(cluster[j].values[idx_order][l_idxs])
-        cluster[j].values[class_order == 0] = tmph
-        cluster[j].values[class_order == 1] = tmpl
+        cluster[j].values[class_order == 0] = tmpl
+        cluster[j].values[class_order == 1] = tmph
         for attr in attrs:
             vals = getattr(cluster[j], attr)[idx_order]
             hi_vals = np.array(vals[idx_order][h_idxs])
             lo_vals = np.array(vals[idx_order][l_idxs])
-            vals[class_order == 0] = hi_vals
-            vals[class_order == 1] = low_vals
+            vals[class_order == 0] = lo_vals
+            vals[class_order == 1] = hi_vals
 
     return cluster
 
