@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>regions &mdash; crystal 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-3.1.0/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-3.1.0/css/bootstrap-theme.min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.1.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="top" title="crystal 0.0.1 documentation" href="index.html" />
+    <link rel="next" title="simulate" href="simulate.html" />
+    <link rel="prev" title="evaluate" href="evaluate.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          crystal</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.0.1</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            <li class="divider-vertical"></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="crystal.html">crystal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot.html">plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluate.html">evaluate</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">regions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulate.html">simulate</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">regions</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="evaluate.html" title="Previous Chapter: evaluate"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm">&laquo; evaluate</span>
+    </a>
+  </li>
+  <li>
+    <a href="simulate.html" title="Next Chapter: simulate"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm">simulate &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="_sources/regions.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      
+  <div class="section" id="regions">
+<h1>regions<a class="headerlink" href="#regions" title="Permalink to this headline">¶</a></h1>
+<p>crystal.regions is used to evaluate (model) existing clusters from a BED
+file rather than finding and then modeling clusters.</p>
+<span class="target" id="module-crystal.regions"></span><dl class="function">
+<dt id="crystal.regions.region_cluster_gen">
+<tt class="descclassname">crystal.regions.</tt><tt class="descname">region_cluster_gen</tt><big>(</big><em>features</em>, <em>regions_bed</em><big>)</big><a class="reference internal" href="_modules/crystal/regions.html#region_cluster_gen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.regions.region_cluster_gen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate clusters from regions defined in a BED file.</p>
+<p>Useful for re-testing existing regions&#8211;no need to use a
+clustering method, just yield &#8216;clusters&#8217; of sites that fall
+within the regions in regions_bed.</p>
+<p>features: a generator of features
+regions_bed: a bed file</p>
+<p>regions are read into memory, but feature_gen is sorted.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">crystal</span> <span class="kn">import</span> <span class="n">Feature</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">feats</span> <span class="o">=</span> <span class="p">[</span><span class="n">Feature</span><span class="p">(</span><span class="s">&#39;chr1&#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="p">[])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">1001</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">feats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Feature</span><span class="p">(</span><span class="s">&#39;chr2&#39;</span><span class="p">,</span> <span class="mi">999</span><span class="p">,</span> <span class="p">[]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;/tmp/zxzz.bed&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+<span class="gp">... </span> <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;chr1</span><span class="se">\t</span><span class="s">5</span><span class="se">\t</span><span class="s">25</span><span class="se">\n</span><span class="s">chr1</span><span class="se">\t</span><span class="s">25</span><span class="se">\t</span><span class="s">26</span><span class="se">\n</span><span class="s">chr1</span><span class="se">\t</span><span class="s">999</span><span class="se">\t</span><span class="s">1002</span><span class="se">\n</span><span class="s">chr2</span><span class="se">\t</span><span class="s">999</span><span class="se">\t</span><span class="s">1002</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">cluster</span> <span class="ow">in</span> <span class="n">region_cluster_gen</span><span class="p">(</span><span class="n">feats</span><span class="p">,</span> <span class="n">fh</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+<span class="gp">... </span>   <span class="k">print</span><span class="p">(</span><span class="n">cluster</span><span class="p">)</span>
+<span class="go">[Feature(chr1:25)]</span>
+<span class="go">[Feature(chr1:10), Feature(chr1:20), Feature(chr1:25)]</span>
+<span class="go">[Feature(chr1:1000), Feature(chr1:1001)]</span>
+<span class="go">[Feature(chr2:999)]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2014, Brent S. Pedersen.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

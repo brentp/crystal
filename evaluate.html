@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>evaluate &mdash; crystal 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-3.1.0/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-3.1.0/css/bootstrap-theme.min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.1.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="top" title="crystal 0.0.1 documentation" href="index.html" />
+    <link rel="next" title="regions" href="regions.html" />
+    <link rel="prev" title="plot" href="plot.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          crystal</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.0.1</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            <li class="divider-vertical"></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="crystal.html">crystal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot.html">plot</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">evaluate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regions.html">regions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulate.html">simulate</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">evaluate</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="plot.html" title="Previous Chapter: plot"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm">&laquo; plot</span>
+    </a>
+  </li>
+  <li>
+    <a href="regions.html" title="Next Chapter: regions"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm">regions &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="_sources/evaluate.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      
+  <div class="section" id="evaluate">
+<h1>evaluate<a class="headerlink" href="#evaluate" title="Permalink to this headline">¶</a></h1>
+<p><strong>crystal.evaluate</strong> contains functions to evaluate methods for modeling clusters.</p>
+<span class="target" id="module-crystal.evaluate"></span><dl class="function">
+<dt id="crystal.evaluate.evaluate_modeled_regions">
+<tt class="descclassname">crystal.evaluate.</tt><tt class="descname">evaluate_modeled_regions</tt><big>(</big><em>bed_iter</em>, <em>regions</em>, <em>size=None</em>, <em>label=''</em>, <em>ax=None</em>, <em>**plot_kwargs</em><big>)</big><a class="reference internal" href="_modules/crystal/evaluate.html#evaluate_modeled_regions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.evaluate.evaluate_modeled_regions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate the accuracy of a method (<cite>model_fn</cite>) by comparing how many
+fall into a set of &#8220;truth&#8221; regions vs. outside.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>bed_iter</strong> : iterable</p>
+<blockquote>
+<div><p>iterable with each element of (chrom, start, end, p-value, n_sites)
+can be regions or features.</p>
+</div></blockquote>
+<p><strong>regions</strong> : file</p>
+<blockquote>
+<div><p>BED file of regions.</p>
+</div></blockquote>
+<p><strong>size</strong> : int</p>
+<blockquote>
+<div><p>which size region to test. default (None) is all sizes.</p>
+</div></blockquote>
+<p><strong>label</strong> : str</p>
+<blockquote>
+<div><p>label for plot legend</p>
+</div></blockquote>
+<p class="last"><strong>ax</strong> : axis</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.evaluate.plot_roc">
+<tt class="descclassname">crystal.evaluate.</tt><tt class="descname">plot_roc</tt><big>(</big><em>ax</em>, <em>r</em>, <em>plot_kwargs={}</em><big>)</big><a class="reference internal" href="_modules/crystal/evaluate.html#plot_roc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.evaluate.plot_roc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot ROC for a given result.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>ax: matplotlib axis</strong></p>
+<p><strong>r: dict</strong></p>
+<blockquote class="last">
+<div><p>return value from <tt class="xref py py-func docutils literal"><span class="pre">evaluate_method()</span></tt></p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.evaluate.plot_times">
+<tt class="descclassname">crystal.evaluate.</tt><tt class="descname">plot_times</tt><big>(</big><em>ax</em>, <em>results</em>, <em>labels</em>, <em>colors=None</em><big>)</big><a class="reference internal" href="_modules/crystal/evaluate.html#plot_times"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.evaluate.plot_times" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the times taken for each result in results
+from <tt class="xref py py-func docutils literal"><span class="pre">evalute_method()</span></tt></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>ax: matplotlib axis</strong></p>
+<p><strong>results: list of list of dict</strong></p>
+<blockquote>
+<div><p>list of return values from <tt class="xref py py-func docutils literal"><span class="pre">model_clusters()</span></tt></p>
+</div></blockquote>
+<p><strong>colors: list</strong></p>
+<blockquote class="last">
+<div><p>list of colors for matplotlib</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.evaluate.write_modeled_regions">
+<tt class="descclassname">crystal.evaluate.</tt><tt class="descname">write_modeled_regions</tt><big>(</big><em>modeled_clusters</em>, <em>p_cutoff</em>, <em>out_fh</em><big>)</big><a class="reference internal" href="_modules/crystal/evaluate.html#write_modeled_regions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.evaluate.write_modeled_regions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a region bed file suitable for use in <a class="reference internal" href="#crystal.evaluate.evaluate_modeled_regions" title="crystal.evaluate.evaluate_modeled_regions"><tt class="xref py py-func docutils literal"><span class="pre">evaluate_modeled_regions()</span></tt></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>modeled_clusters</strong> : list</p>
+<blockquote>
+<div><p>output from <tt class="xref py py-func docutils literal"><span class="pre">model_clusters()</span></tt></p>
+</div></blockquote>
+<p><strong>p_cutoff</strong> : float</p>
+<blockquote>
+<div><p>values &lt; this are set as true</p>
+</div></blockquote>
+<p><strong>out_fh</strong> : filehandle</p>
+<blockquote class="last">
+<div><p>where to write the data</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2014, Brent S. Pedersen.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

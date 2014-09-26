@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>simulate &mdash; crystal 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-3.1.0/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-3.1.0/css/bootstrap-theme.min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.1.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="top" title="crystal 0.0.1 documentation" href="index.html" />
+    <link rel="prev" title="regions" href="regions.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          crystal</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.0.1</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            <li class="divider-vertical"></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="crystal.html">crystal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot.html">plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluate.html">evaluate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regions.html">regions</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">simulate</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">simulate</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="regions.html" title="Previous Chapter: regions"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm">&laquo; regions</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="_sources/simulate.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      
+  <div class="section" id="simulate">
+<h1>simulate<a class="headerlink" href="#simulate" title="Permalink to this headline">¶</a></h1>
+<p><em>crystal.simulate</em> contains functions to simulate clusters.</p>
+<span class="target" id="module-crystal.simulate"></span><dl class="function">
+<dt id="crystal.simulate.rr_cluster">
+<tt class="descclassname">crystal.simulate.</tt><tt class="descname">rr_cluster</tt><big>(</big><em>cluster</em>, <em>covs</em>, <em>formula='methylation ~ age'</em><big>)</big><a class="reference internal" href="_modules/crystal/simulate.html#rr_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.simulate.rr_cluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set cluster values to reduced-residuals.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.simulate.simulate_cluster">
+<tt class="descclassname">crystal.simulate.</tt><tt class="descname">simulate_cluster</tt><big>(</big><em>cluster</em>, <em>w=0</em>, <em>class_order=None</em>, <em>get_reduced_residuals=None</em>, <em>grr_args=()</em><big>)</big><a class="reference internal" href="_modules/crystal/simulate.html#simulate_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.simulate.simulate_cluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modify the data in existing clusters to create or remove and effect.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cluster</strong> : list of clusters</p>
+<blockquote>
+<div><p><em>should</em> include clusters of length 1.</p>
+</div></blockquote>
+<p><strong>w</strong> : float</p>
+<blockquote>
+<div><p>w = 0 generates random data. Higher values are
+more likely to separate the groups.</p>
+</div></blockquote>
+<p><strong>class_order</strong> : np.array of 0/1</p>
+<blockquote>
+<div><p>list of same length as cluster[*].values indicating
+which group (0 or 1) each sample belongs to.</p>
+</div></blockquote>
+<p><strong>get_reduced_residuals</strong> : function</p>
+<blockquote class="last">
+<div><p>optional, see <a class="reference internal" href="#crystal.simulate.simulate_regions" title="crystal.simulate.simulate_regions"><tt class="xref py py-func docutils literal"><span class="pre">simulate_regions()</span></tt></a></p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.simulate.simulate_regions">
+<tt class="descclassname">crystal.simulate.</tt><tt class="descname">simulate_regions</tt><big>(</big><em>clust_list</em>, <em>region_fh</em>, <em>sizes={1: 200</em>, <em>2: 200</em>, <em>4: 100</em>, <em>6: 100</em>, <em>8: 100</em>, <em>10: 100}</em>, <em>class_order=None</em>, <em>seed=42</em>, <em>get_reduced_residuals=None</em>, <em>get_reduced_residuals_args=()</em><big>)</big><a class="reference internal" href="_modules/crystal/simulate.html#simulate_regions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.simulate.simulate_regions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulate regions and randomize others.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>clust_list</strong> : list of clusters</p>
+<blockquote>
+<div><p>should include clusters of length 1.</p>
+</div></blockquote>
+<p><strong>region_fh</strong> : filehandle</p>
+<blockquote>
+<div><p>a BED file of all position will be written to this
+file. The 4th column will indicate true/false indicating
+if it was simulated to have a difference. The fifth
+column will indicate the size of the cluster it was in.</p>
+</div></blockquote>
+<p><strong>size</strong> : dict</p>
+<blockquote>
+<div><p>keys of the clust_size and values of how many clusters
+to create of that size. Default is to create 100 of each
+size from 3 to 8 and 200 clusters of size one and 2. All
+others are randomized.</p>
+</div></blockquote>
+<p><strong>classes</strong> : np.array</p>
+<blockquote>
+<div><p>same length as cluster[*].values indicating
+which group each sample belongs to.</p>
+</div></blockquote>
+<p><strong>seed: int</strong></p>
+<p><strong>get_reduced_residuals</strong> : function</p>
+<blockquote>
+<div><p>If this parameter is None, then they values are shuffled as they
+are received.
+A function that accepts a cluster and returns residuals of the reduced
+model. e.g. if the full model of interest is:</p>
+<blockquote>
+<div><p>methylation ~ disease + age + gender</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>the reduced model would be:</dt>
+<dd><p class="first last">methylation ~ age + gender</p>
+</dd>
+</dl>
+<p>so that only the residuals of the reduced model are shuffled and the
+other effects should remain. This will implement the bootsrap for
+linear models from Efron and Tibshirani.
+An Example function would be: <a class="reference internal" href="#crystal.simulate.rr_cluster" title="crystal.simulate.rr_cluster"><tt class="xref py py-func docutils literal"><span class="pre">rr_cluster()</span></tt></a></p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">generator of clusters in the same order as clust_list.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2014, Brent S. Pedersen.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

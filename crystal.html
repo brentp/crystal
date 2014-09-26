@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>crystal &mdash; crystal 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-3.1.0/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-3.1.0/css/bootstrap-theme.min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.1.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="top" title="crystal 0.0.1 documentation" href="index.html" />
+    <link rel="next" title="plot" href="plot.html" />
+    <link rel="prev" title="crystal documentation" href="index.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          crystal</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.0.1</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            <li class="divider-vertical"></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">crystal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot.html">plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluate.html">evaluate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regions.html">regions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulate.html">simulate</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">crystal</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="index.html" title="Previous Chapter: crystal documentation"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm">&laquo; crystal document...</span>
+    </a>
+  </li>
+  <li>
+    <a href="plot.html" title="Next Chapter: plot"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm">plot &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="_sources/crystal.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      
+  <div class="section" id="crystal">
+<h1>crystal<a class="headerlink" href="#crystal" title="Permalink to this headline">¶</a></h1>
+<p>crystal.crystal contains the main functions to call DMRs and example
+cluster-modeling functions.</p>
+<span class="target" id="module-crystal.crystal"></span><p>Model clustered, correlated data.</p>
+<dl class="class">
+<dt id="crystal.crystal.CountFeature">
+<em class="property">class </em><tt class="descclassname">crystal.crystal.</tt><tt class="descname">CountFeature</tt><big>(</big><em>chrom</em>, <em>pos</em>, <em>methylated</em>, <em>counts</em>, <em>rho_min=0.5</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#CountFeature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.CountFeature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Feature Class that supports count data.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="crystal.crystal.Feature">
+<em class="property">class </em><tt class="descclassname">crystal.crystal.</tt><tt class="descname">Feature</tt><big>(</big><em>chrom</em>, <em>pos</em>, <em>values</em>, <em>ovalues=None</em>, <em>rho_min=0.5</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#Feature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.Feature" title="Permalink to this definition">¶</a></dt>
+<dd><p>A feature object that can and likely should be used by all programs that
+call <cite>crystal</cite>. Takes a chromosome, a position and a list of float
+values that are the methylation measurements (should be logit transformed).</p>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="18%" />
+<col width="82%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>chrom: str</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>position: int</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>values: list</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>spos: str</td>
+<td>string position (chr1:12354)</td>
+</tr>
+<tr class="row-odd"><td>rho_min</td>
+<td>(float) minimum spearman&#8217;s R to be considered correlated</td>
+</tr>
+<tr class="row-even"><td>ovalues</td>
+<td>(list) other values potentially used by modeling functions</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="crystal.crystal.Feature.distance">
+<tt class="descname">distance</tt><big>(</big><em>other</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#Feature.distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.Feature.distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Distance between this feature and another.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="crystal.crystal.Feature.is_correlated">
+<tt class="descname">is_correlated</tt><big>(</big><em>other</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#Feature.is_correlated"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.Feature.is_correlated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return boolean indicating  correlation with other.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.crystal.bump_cluster">
+<tt class="descclassname">crystal.crystal.</tt><tt class="descname">bump_cluster</tt><big>(</big><em>formula</em>, <em>cluster</em>, <em>covs</em>, <em>coef</em>, <em>nsims=20000</em>, <em>value_fn=&lt;function coef_sum at 0x2b655ac847d0&gt;</em>, <em>robust=False</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#bump_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.bump_cluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model clusters by fitting model at each site and then comparing some
+metric to the same metric from models fit to simulated data.
+Uses sequential Monte-carlo to stop once we know the simulated p-value is
+high (since we are always interested in low p-values).</p>
+<p>Same signature as <a class="reference internal" href="#crystal.crystal.gee_cluster" title="crystal.crystal.gee_cluster"><tt class="xref py py-func docutils literal"><span class="pre">gee_cluster()</span></tt></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.crystal.gee_cluster">
+<tt class="descclassname">crystal.crystal.</tt><tt class="descname">gee_cluster</tt><big>(</big><em>formula</em>, <em>cluster</em>, <em>covs</em>, <em>coef</em>, <em>cov_struct=&lt;statsmodels.genmod.dependence_structures.covstruct.Exchangeable object at 0x2b6558248350&gt;</em>, <em>family=&lt;statsmodels.genmod.families.family.Gaussian object at 0x2b6558248390&gt;</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#gee_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.gee_cluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>An example of a <cite>model_fn</cite>; any function with a similar signature
+can be used.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>formula</strong> : str</p>
+<blockquote>
+<div><p>R (patsy) style formula. Must contain &#8216;methylation&#8217;: e.g.:
+methylation ~ age + gender + race</p>
+</div></blockquote>
+<p><strong>cluster</strong> : list of Features</p>
+<blockquote>
+<div><p>cluster of features from clustering or a region.
+most functions will create a methylation matrix with:
+&gt;&gt; meth = np.array([f.values for f in features])</p>
+</div></blockquote>
+<p><strong>covs</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Contains covariates from <cite>formula</cite></p>
+</div></blockquote>
+<p><strong>coef: str</strong></p>
+<blockquote>
+<div><p>coefficient of interest, e.g. &#8216;age&#8217;</p>
+</div></blockquote>
+<p><strong>cov_struct: object</strong></p>
+<blockquote>
+<div><p>one of the covariance structures provided by statsmodels.
+Likely either Exchangeable() or Independence()</p>
+</div></blockquote>
+<p><strong>family: object</strong></p>
+<blockquote>
+<div><p>one of the familyies provided by statsmodels. If Guassian(),
+then methylation is assumed to be count-based (clusters of
+CountFeatures.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>result</strong> : dict</p>
+<blockquote class="last">
+<div><p>dict with values (keys) of at least p-value (&#8216;p&#8217;), coefficient
+estimate (&#8216;coef&#8217;) and any other information desired.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.crystal.liptak_cluster">
+<tt class="descclassname">crystal.crystal.</tt><tt class="descname">liptak_cluster</tt><big>(</big><em>formula</em>, <em>cluster</em>, <em>covs</em>, <em>coef</em>, <em>robust=False</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#liptak_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.liptak_cluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model clusters by fitting model at each site and then
+combining using <tt class="xref py py-func docutils literal"><span class="pre">stouffer_liptak()</span></tt>. same signature as
+<a class="reference internal" href="#crystal.crystal.gee_cluster" title="crystal.crystal.gee_cluster"><tt class="xref py py-func docutils literal"><span class="pre">gee_cluster()</span></tt></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.crystal.mixed_model_cluster">
+<tt class="descclassname">crystal.crystal.</tt><tt class="descname">mixed_model_cluster</tt><big>(</big><em>formula</em>, <em>cluster</em>, <em>covs</em>, <em>coef</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#mixed_model_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.mixed_model_cluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model clusters with a mixed-model, same signature as
+<a class="reference internal" href="#crystal.crystal.gee_cluster" title="crystal.crystal.gee_cluster"><tt class="xref py py-func docutils literal"><span class="pre">gee_cluster()</span></tt></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.crystal.model_clusters">
+<tt class="descclassname">crystal.crystal.</tt><tt class="descname">model_clusters</tt><big>(</big><em>clust_iter</em>, <em>clin_df</em>, <em>formula</em>, <em>coef</em>, <em>model_fn=&lt;function gee_cluster at 0x2b655ac842a8&gt;</em>, <em>pool=None</em>, <em>n_cpu=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#model_clusters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.model_clusters" title="Permalink to this definition">¶</a></dt>
+<dd><p>For each cluster in an iterable, evaluate the chosen model and
+yield a dictionary of information</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>clust_iter</strong> : iterable</p>
+<blockquote>
+<div><p>iterable of clusters</p>
+</div></blockquote>
+<p><strong>clin_df</strong> : pandas.DataFrame</p>
+<blockquote>
+<div><p>Contains covariates from <cite>formula</cite></p>
+</div></blockquote>
+<p><strong>formula</strong> : str</p>
+<blockquote>
+<div><p>R (patsy) style formula. Must contain &#8216;methylation&#8217;: e.g.:
+methylation ~ age + gender + race</p>
+</div></blockquote>
+<p><strong>coef</strong> : str</p>
+<blockquote>
+<div><p>The coefficient of interest in the model, e.g. &#8216;age&#8217;</p>
+</div></blockquote>
+<p><strong>model_fn</strong> : fn</p>
+<blockquote>
+<div><p>A function with signature
+fn(formula, methylation, covs, coef, kwargs)
+that returns a dictionary with at least p-value and coef</p>
+</div></blockquote>
+<p><strong>n_cpu</strong> : int</p>
+<p><strong>kwargs: dict</strong></p>
+<blockquote class="last">
+<div><p>arguments sent to <cite>model_fn</cite></p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.crystal.nb_cluster">
+<tt class="descclassname">crystal.crystal.</tt><tt class="descname">nb_cluster</tt><big>(</big><em>formula</em>, <em>cluster</em>, <em>covs</em>, <em>coef</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#nb_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.nb_cluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model a cluster of correlated features with the negative binomial</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.crystal.ols_cluster_robust">
+<tt class="descclassname">crystal.crystal.</tt><tt class="descname">ols_cluster_robust</tt><big>(</big><em>formula</em>, <em>cluster</em>, <em>covs</em>, <em>coef</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#ols_cluster_robust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.ols_cluster_robust" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model clusters with cluster-robust OLS, same signature as
+<a class="reference internal" href="#crystal.crystal.gee_cluster" title="crystal.crystal.gee_cluster"><tt class="xref py py-func docutils literal"><span class="pre">gee_cluster()</span></tt></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.crystal.one_cluster">
+<tt class="descclassname">crystal.crystal.</tt><tt class="descname">one_cluster</tt><big>(</big><em>formula</em>, <em>feature</em>, <em>covs</em>, <em>coef</em>, <em>robust=False</em>, <em>_pat=&lt;_sre.SRE_Pattern object at 0x2b655abddf08&gt;</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#one_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.one_cluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>used when we have a &#8220;cluster&#8221; with 1 probe.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.crystal.stouffer_liptak_combine">
+<tt class="descclassname">crystal.crystal.</tt><tt class="descname">stouffer_liptak_combine</tt><big>(</big><em>pvals</em>, <em>sigma</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#stouffer_liptak_combine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.stouffer_liptak_combine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine p-values accounting for correlation.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.crystal.wrapper">
+<tt class="descclassname">crystal.crystal.</tt><tt class="descname">wrapper</tt><big>(</big><em>model_fn</em>, <em>formula</em>, <em>cluster</em>, <em>clin_df</em>, <em>coef</em>, <em>kwargs=None</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#wrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.wrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>wrap the user-defined functions to return everything we expect and
+to call just OLS when there is a single probe.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.crystal.zscore_cluster">
+<tt class="descclassname">crystal.crystal.</tt><tt class="descname">zscore_cluster</tt><big>(</big><em>formula</em>, <em>cluster</em>, <em>covs</em>, <em>coef</em>, <em>robust=False</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#zscore_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.zscore_cluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model clusters by fitting model at each site and then
+combining using the z-score method. Same signature as
+<a class="reference internal" href="#crystal.crystal.gee_cluster" title="crystal.crystal.gee_cluster"><tt class="xref py py-func docutils literal"><span class="pre">gee_cluster()</span></tt></a></p>
+</dd></dl>
+
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2014, Brent S. Pedersen.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

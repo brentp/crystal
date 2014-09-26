@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>crystal.regions &mdash; crystal 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/bootstrap-3.1.0/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/bootstrap-3.1.0/css/bootstrap-theme.min.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-3.1.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+    <link rel="top" title="crystal 0.0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          crystal</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.0.1</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            <li class="divider-vertical"></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../crystal.html">crystal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plot.html">plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../evaluate.html">evaluate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../regions.html">regions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../simulate.html">simulate</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      
+  <h1>Source code for crystal.regions</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">import</span> <span class="nn">toolshed</span> <span class="kn">as</span> <span class="nn">ts</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<div class="viewcode-block" id="region_cluster_gen"><a class="viewcode-back" href="../../regions.html#crystal.regions.region_cluster_gen">[docs]</a><span class="k">def</span> <span class="nf">region_cluster_gen</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">regions_bed</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;Generate clusters from regions defined in a BED file.</span>
+
+<span class="sd">    Useful for re-testing existing regions--no need to use a</span>
+<span class="sd">    clustering method, just yield &#39;clusters&#39; of sites that fall</span>
+<span class="sd">    within the regions in regions_bed.</span>
+
+<span class="sd">    features: a generator of features</span>
+<span class="sd">    regions_bed: a bed file</span>
+
+<span class="sd">    regions are read into memory, but feature_gen is sorted.</span>
+
+<span class="sd">    &gt;&gt;&gt; from crystal import Feature</span>
+<span class="sd">    &gt;&gt;&gt; feats = [Feature(&#39;chr1&#39;, i, []) for i in [1, 10, 20, 25, 200, 1000, 1001]]</span>
+<span class="sd">    &gt;&gt;&gt; feats.append(Feature(&#39;chr2&#39;, 999, []))</span>
+<span class="sd">    &gt;&gt;&gt; with open(&#39;/tmp/zxzz.bed&#39;, &#39;w&#39;) as fh:</span>
+<span class="sd">    ...  fh.write(&#39;chr1\t5\t25\nchr1\t25\t26\nchr1\t999\t1002\nchr2\t999\t1002\n&#39;)</span>
+
+<span class="sd">    &gt;&gt;&gt; for cluster in region_cluster_gen(feats, fh.name):</span>
+<span class="sd">    ...    print(cluster)</span>
+<span class="sd">    [Feature(chr1:25)]</span>
+<span class="sd">    [Feature(chr1:10), Feature(chr1:20), Feature(chr1:25)]</span>
+<span class="sd">    [Feature(chr1:1000), Feature(chr1:1001)]</span>
+<span class="sd">    [Feature(chr2:999)]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">regions</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">toks</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">regions_bed</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">False</span><span class="p">)):</span>
+        <span class="c"># see if it&#39;s a header.</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">toks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">toks</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span> <span class="k">continue</span>
+        <span class="c"># seen used keep track of the regions we&#39;ve found</span>
+        <span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="n">toks</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">toks</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">))</span>
+        <span class="n">regions</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)))</span>
+    <span class="n">regions</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">regions</span><span class="p">)</span>
+    <span class="c"># TODO: handle overlapping regions</span>
+
+    <span class="n">dmrs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">features</span><span class="p">:</span>
+        <span class="n">cr</span> <span class="o">=</span> <span class="n">regions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">chrom</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cr</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">reg</span> <span class="ow">in</span> <span class="n">dmrs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">seen</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">reg</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="n">dmrs</span><span class="p">[</span><span class="n">reg</span><span class="p">]</span>
+                <span class="n">dmrs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">reg</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="c"># loop over all regions of overlap and add the feature</span>
+        <span class="k">for</span> <span class="n">reg</span> <span class="ow">in</span> <span class="p">(</span><span class="n">rid</span> <span class="k">for</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">rid</span><span class="p">)</span> <span class="ow">in</span> <span class="n">cr</span> <span class="k">if</span> <span class="n">s</span> <span class="o">&lt;=</span> <span class="n">f</span><span class="o">.</span><span class="n">position</span> <span class="o">&lt;=</span> <span class="n">e</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">reg</span> <span class="ow">in</span> <span class="n">dmrs</span><span class="p">:</span> <span class="n">dmrs</span><span class="p">[</span><span class="n">reg</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">dmrs</span><span class="p">[</span><span class="n">reg</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="c"># loop all existing regions and see if the current feature start &gt;</span>
+        <span class="c"># region end. if so, we can pop and yield that region.</span>
+        <span class="k">for</span> <span class="n">rchrom</span><span class="p">,</span> <span class="n">rstart</span><span class="p">,</span> <span class="n">rend</span> <span class="ow">in</span> <span class="n">dmrs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">rchrom</span> <span class="o">!=</span> <span class="n">f</span><span class="o">.</span><span class="n">chrom</span> <span class="ow">or</span> <span class="n">rend</span> <span class="o">&lt;</span> <span class="n">f</span><span class="o">.</span><span class="n">position</span><span class="p">:</span>
+                <span class="n">seen</span><span class="o">.</span><span class="n">remove</span><span class="p">((</span><span class="n">rchrom</span><span class="p">,</span> <span class="n">rstart</span><span class="p">,</span> <span class="n">rend</span><span class="p">))</span>
+                <span class="k">yield</span> <span class="n">dmrs</span><span class="o">.</span><span class="n">pop</span><span class="p">((</span><span class="n">rchrom</span><span class="p">,</span> <span class="n">rstart</span><span class="p">,</span> <span class="n">rend</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">reg</span> <span class="ow">in</span> <span class="n">dmrs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">seen</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">reg</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">dmrs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">reg</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">seen</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">seen</span><span class="p">,</span> <span class="nb">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">doctest</span>
+    <span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2014, Brent S. Pedersen.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

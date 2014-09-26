@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>crystal.crystal &mdash; crystal 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/bootstrap-3.1.0/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/bootstrap-3.1.0/css/bootstrap-theme.min.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-3.1.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+    <link rel="top" title="crystal 0.0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          crystal</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.0.1</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            <li class="divider-vertical"></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../crystal.html">crystal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plot.html">plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../evaluate.html">evaluate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../regions.html">regions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../simulate.html">simulate</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      
+  <h1>Source code for crystal.crystal</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Model clustered, correlated data.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">toolshed</span> <span class="kn">as</span> <span class="nn">ts</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">izip</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span> <span class="kn">as</span> <span class="nn">ss</span>
+<span class="kn">import</span> <span class="nn">patsy</span>
+
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">norm</span>
+<span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="kn">import</span> <span class="n">cholesky</span> <span class="k">as</span> <span class="n">chol</span><span class="p">,</span> <span class="n">lstsq</span>
+
+<span class="kn">from</span> <span class="nn">statsmodels.api</span> <span class="kn">import</span> <span class="n">GEE</span><span class="p">,</span> <span class="n">GLM</span><span class="p">,</span> <span class="n">MixedLM</span><span class="p">,</span> <span class="n">RLM</span><span class="p">,</span> <span class="n">GLS</span><span class="p">,</span> <span class="n">OLS</span><span class="p">,</span> <span class="n">GLSAR</span>
+<span class="kn">from</span> <span class="nn">statsmodels.genmod.dependence_structures</span> <span class="kn">import</span> <span class="n">Exchangeable</span><span class="p">,</span> <span class="n">Independence</span>
+<span class="kn">from</span> <span class="nn">statsmodels.genmod.families</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Gaussian</span><span class="p">,</span> <span class="n">Poisson</span><span class="p">,</span>
+        <span class="n">NegativeBinomial</span> <span class="k">as</span> <span class="n">NB</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">statsmodels.discrete.discrete_model</span> <span class="kn">import</span> <span class="n">NegativeBinomial</span>
+
+<span class="k">def</span> <span class="nf">long_covs</span><span class="p">(</span><span class="n">covs</span><span class="p">,</span> <span class="n">methylation</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">covs</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;id_</span><span class="si">%i</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">covs</span><span class="p">))]</span>
+    <span class="n">cov_rep</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">((</span><span class="n">covs</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">methylation</span><span class="p">))))</span>
+    <span class="c">#nr, nc = methylation.shape</span>
+    <span class="n">cov_rep</span><span class="p">[</span><span class="s">&#39;CpG&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">([</span><span class="s">&#39;CpG_</span><span class="si">%i</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span>
+        <span class="nb">range</span><span class="p">(</span><span class="n">methylation</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])],</span> <span class="n">methylation</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="c">#cov_rep[&#39;CpG&#39;] = np.repeat([&#39;CpG_%i&#39; % i for i in range(nr)], nc)</span>
+    <span class="n">cov_rep</span><span class="p">[</span><span class="s">&#39;methylation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">methylation</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">assert</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">methylation</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">cov_rep</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+    <span class="n">cov_rep</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cov_rep</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cov_rep</span>
+
+<span class="k">def</span> <span class="nf">corr</span><span class="p">(</span><span class="n">methylations</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">methylations</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">methylations</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="k">return</span> <span class="p">[[</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">ss</span><span class="o">.</span><span class="n">spearmanr</span><span class="p">(</span><span class="n">methylations</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">methylations</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">]])</span>
+    <span class="k">return</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">get_ptc</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span> <span class="n">coef</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">result</span><span class="p">,</span> <span class="n">res</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_ptc</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">coef</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fit</span><span class="p">],</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;p&#39;</span><span class="p">,</span> <span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="s">&#39;coef&#39;</span><span class="p">):</span>
+            <span class="n">res</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">r</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">result</span><span class="p">])</span>
+        <span class="n">res</span><span class="p">[</span><span class="s">&#39;covar&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;covar&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">res</span>
+
+    <span class="n">idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">par</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fit</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">exog_names</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">par</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">coef</span><span class="p">)]</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="s">&quot;too many params like&quot;</span><span class="p">,</span> <span class="n">coef</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s">&#39;p&#39;</span><span class="p">:</span> <span class="n">fit</span><span class="o">.</span><span class="n">pvalues</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+            <span class="s">&#39;t&#39;</span><span class="p">:</span> <span class="n">fit</span><span class="o">.</span><span class="n">tvalues</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+            <span class="s">&#39;coef&#39;</span><span class="p">:</span> <span class="n">fit</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+            <span class="s">&#39;covar&#39;</span><span class="p">:</span> <span class="n">fit</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">exog_names</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]]}</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">LinAlgError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">coef</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+                <span class="n">covar</span><span class="o">=</span><span class="n">fit</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">exog_names</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+
+<span class="kn">from</span> <span class="nn">statsmodels.tools.sm_exceptions</span> <span class="kn">import</span> <span class="n">PerfectSeparationError</span>
+
+<div class="viewcode-block" id="one_cluster"><a class="viewcode-back" href="../../crystal.html#crystal.crystal.one_cluster">[docs]</a><span class="k">def</span> <span class="nf">one_cluster</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">feature</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span> <span class="n">robust</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">_pat</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;\+\s*CpG&quot;</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;used when we have a &quot;cluster&quot; with 1 probe.&quot;&quot;&quot;</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">covs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="c"># remove the CpG in the formula</span>
+    <span class="n">formula</span> <span class="o">=</span> <span class="n">_pat</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">formula</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">feature</span><span class="p">,</span> <span class="n">CountFeature</span><span class="p">):</span>
+        <span class="n">c</span><span class="p">[</span><span class="s">&#39;methylation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">feature</span><span class="o">.</span><span class="n">methylated</span>
+        <span class="n">c</span><span class="p">[</span><span class="s">&#39;counts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">feature</span><span class="o">.</span><span class="n">counts</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="s">&#39;counts&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">get_ptc</span><span class="p">(</span><span class="n">GLM</span><span class="o">.</span><span class="n">from_formula</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">c</span><span class="p">,</span>
+                                        <span class="n">exposure</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="s">&#39;counts&#39;</span><span class="p">],</span>
+                                        <span class="n">family</span><span class="o">=</span><span class="n">Poisson</span><span class="p">())</span><span class="o">.</span><span class="n">fit</span><span class="p">(),</span> <span class="n">coef</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">PerfectSeparationError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">coef</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">covar</span><span class="o">=</span><span class="n">coef</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">c</span><span class="p">[</span><span class="s">&#39;methylation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">feature</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">(</span><span class="n">RLM</span> <span class="k">if</span> <span class="n">robust</span> <span class="k">else</span> <span class="n">OLS</span><span class="p">)</span><span class="o">.</span><span class="n">from_formula</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">get_ptc</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">coef</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="nb_cluster"><a class="viewcode-back" href="../../crystal.html#crystal.crystal.nb_cluster">[docs]</a><span class="k">def</span> <span class="nf">nb_cluster</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="n">coef</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Model a cluster of correlated features with the negative binomial&quot;&quot;&quot;</span>
+    <span class="n">methylated</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">f</span><span class="o">.</span><span class="n">methylated</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">])</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">f</span><span class="o">.</span><span class="n">counts</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">])</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">[</span><span class="n">NegativeBinomial</span><span class="o">.</span><span class="n">from_formula</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">count</span><span class="p">))</span>\
+               <span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">disp</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">methylation</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">izip</span><span class="p">(</span><span class="n">methylated</span><span class="p">,</span> <span class="n">counts</span><span class="p">)]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">coef</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">covar</span><span class="o">=</span><span class="s">&quot;NA&quot;</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">corr</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+
+    <span class="n">methylations</span> <span class="o">=</span> <span class="n">methylated</span> <span class="o">/</span> <span class="n">counts</span> <span class="c"># for correlation below.</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">get_ptc</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">coef</span><span class="p">)</span>
+    <span class="n">nan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s">&#39;p&#39;</span><span class="p">])</span>
+    <span class="n">r</span><span class="p">[</span><span class="s">&#39;p&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">zscore_combine</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s">&#39;p&#39;</span><span class="p">][</span><span class="o">~</span><span class="n">nan</span><span class="p">],</span> <span class="n">corr</span><span class="p">(</span><span class="n">methylations</span><span class="p">[</span><span class="o">~</span><span class="n">nan</span><span class="p">]))</span>
+    <span class="n">r</span><span class="p">[</span><span class="s">&#39;t&#39;</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s">&#39;coef&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s">&#39;t&#39;</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s">&#39;coef&#39;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">r</span>
+</div>
+<div class="viewcode-block" id="gee_cluster"><a class="viewcode-back" href="../../crystal.html#crystal.crystal.gee_cluster">[docs]</a><span class="k">def</span> <span class="nf">gee_cluster</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span> <span class="n">cov_struct</span><span class="o">=</span><span class="n">Exchangeable</span><span class="p">(),</span>
+        <span class="n">family</span><span class="o">=</span><span class="n">Gaussian</span><span class="p">()):</span>
+    <span class="sd">&quot;&quot;&quot;An example of a `model_fn`; any function with a similar signature</span>
+<span class="sd">    can be used.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    formula : str</span>
+<span class="sd">        R (patsy) style formula. Must contain &#39;methylation&#39;: e.g.:</span>
+<span class="sd">        methylation ~ age + gender + race</span>
+
+<span class="sd">    cluster : list of Features</span>
+<span class="sd">        cluster of features from clustering or a region.</span>
+<span class="sd">        most functions will create a methylation matrix with:</span>
+<span class="sd">        &gt;&gt; meth = np.array([f.values for f in features])</span>
+
+<span class="sd">    covs : pandas.DataFrame</span>
+<span class="sd">        Contains covariates from `formula`</span>
+
+<span class="sd">    coef: str</span>
+<span class="sd">        coefficient of interest, e.g. &#39;age&#39;</span>
+
+<span class="sd">    cov_struct: object</span>
+<span class="sd">        one of the covariance structures provided by statsmodels.</span>
+<span class="sd">        Likely either Exchangeable() or Independence()</span>
+
+<span class="sd">    family: object</span>
+<span class="sd">        one of the familyies provided by statsmodels. If Guassian(),</span>
+<span class="sd">        then methylation is assumed to be count-based (clusters of</span>
+<span class="sd">        CountFeatures.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    result : dict</span>
+<span class="sd">        dict with values (keys) of at least p-value (&#39;p&#39;), coefficient</span>
+<span class="sd">        estimate (&#39;coef&#39;) and any other information desired.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">Gaussian</span><span class="p">):</span>
+        <span class="n">cov_rep</span> <span class="o">=</span> <span class="n">long_covs</span><span class="p">(</span><span class="n">covs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">f</span><span class="o">.</span><span class="n">values</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">]))</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">GEE</span><span class="o">.</span><span class="n">from_formula</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="n">cov_rep</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="n">cov_rep</span><span class="p">,</span>
+            <span class="n">cov_struct</span><span class="o">=</span><span class="n">cov_struct</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="n">family</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="p">(</span><span class="n">NB</span><span class="p">,</span> <span class="n">Poisson</span><span class="p">)):</span>
+        <span class="n">cov_rep</span> <span class="o">=</span> <span class="n">long_covs</span><span class="p">(</span><span class="n">covs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">f</span><span class="o">.</span><span class="n">methylated</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">]),</span>
+                <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">f</span><span class="o">.</span><span class="n">counts</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">]))</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">GEE</span><span class="o">.</span><span class="n">from_formula</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="n">cov_rep</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="n">cov_rep</span><span class="p">,</span>
+                               <span class="n">cov_struct</span><span class="o">=</span><span class="n">cov_struct</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="n">family</span><span class="p">,</span>
+                               <span class="n">offset</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">cov_rep</span><span class="p">[</span><span class="s">&#39;counts&#39;</span><span class="p">]))</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Only guassian and poisson are supported&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">get_ptc</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">coef</span><span class="p">)</span>
+
+<span class="c"># see: https://gist.github.com/josef-pkt/89585d0b084739a4ed1c</span></div>
+<div class="viewcode-block" id="ols_cluster_robust"><a class="viewcode-back" href="../../crystal.html#crystal.crystal.ols_cluster_robust">[docs]</a><span class="k">def</span> <span class="nf">ols_cluster_robust</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="n">coef</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Model clusters with cluster-robust OLS, same signature as</span>
+<span class="sd">    :func:`~gee_cluster`&quot;&quot;&quot;</span>
+    <span class="n">cov_rep</span> <span class="o">=</span> <span class="n">long_covs</span><span class="p">(</span><span class="n">covs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">f</span><span class="o">.</span><span class="n">values</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">]))</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">OLS</span><span class="o">.</span><span class="n">from_formula</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">cov_rep</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">cov_type</span><span class="o">=</span><span class="s">&#39;cluster&#39;</span><span class="p">,</span>
+            <span class="n">cov_kwds</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">groups</span><span class="o">=</span><span class="n">cov_rep</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">get_ptc</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">coef</span><span class="p">)</span>
+</div>
+<span class="k">def</span> <span class="nf">glsar_cluster</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
+    <span class="n">cov_rep</span> <span class="o">=</span> <span class="n">long_covs</span><span class="p">(</span><span class="n">covs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">f</span><span class="o">.</span><span class="n">values</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">]))</span>
+    <span class="c"># group by id, then sort by CpG so that AR is to adjacent CpGs</span>
+    <span class="n">cov_rep</span><span class="o">.</span><span class="n">sort</span><span class="p">([</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="s">&#39;CpG&#39;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">GLSAR</span><span class="o">.</span><span class="n">from_formula</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">cov_rep</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span><span class="o">.</span><span class="n">iterative_fit</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">get_ptc</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">coef</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">gls_cluster</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="n">coef</span><span class="p">):</span>
+    <span class="n">methylation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">f</span><span class="o">.</span><span class="n">values</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">])</span>
+    <span class="c"># TODO: currently this is very, very slow</span>
+    <span class="n">cov_rep</span> <span class="o">=</span> <span class="n">long_covs</span><span class="p">(</span><span class="n">covs</span><span class="p">,</span> <span class="n">methylation</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">methylation</span><span class="p">)</span><span class="o">.</span><span class="n">corr</span><span class="p">())</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">methylation</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">n</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">sigma</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">tril_indices_from</span><span class="p">(</span><span class="n">sigma</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">sigma</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">diag_indices_from</span><span class="p">(</span><span class="n">sigma</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="n">GLS</span><span class="o">.</span><span class="n">from_formula</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">cov_rep</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">get_ptc</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">coef</span><span class="p">)</span>
+
+<div class="viewcode-block" id="mixed_model_cluster"><a class="viewcode-back" href="../../crystal.html#crystal.crystal.mixed_model_cluster">[docs]</a><span class="k">def</span> <span class="nf">mixed_model_cluster</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="n">coef</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Model clusters with a mixed-model, same signature as</span>
+<span class="sd">    :func:`~gee_cluster`&quot;&quot;&quot;</span>
+    <span class="n">cov_rep</span> <span class="o">=</span> <span class="n">long_covs</span><span class="p">(</span><span class="n">covs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">f</span><span class="o">.</span><span class="n">values</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">]))</span>
+    <span class="c"># TODO: remove this once newer version of statsmodels is out.</span>
+    <span class="c"># speeds convergence by using fixed estimates from OLS</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">OLS</span><span class="o">.</span><span class="n">from_formula</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">cov_rep</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span><span class="o">.</span><span class="n">params</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="n">MixedLM</span><span class="o">.</span><span class="n">from_formula</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="s">&#39;id&#39;</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">cov_rep</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">start_params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">fe</span><span class="o">=</span><span class="n">params</span><span class="p">),</span> <span class="n">reml</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                    <span class="n">method</span><span class="o">=</span><span class="s">&#39;bfgs&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">get_ptc</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">coef</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="stouffer_liptak_combine"><a class="viewcode-back" href="../../crystal.html#crystal.crystal.stouffer_liptak_combine">[docs]</a><span class="k">def</span> <span class="nf">stouffer_liptak_combine</span><span class="p">(</span><span class="n">pvals</span><span class="p">,</span> <span class="n">sigma</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Combine p-values accounting for correlation.&quot;&quot;&quot;</span>
+    <span class="n">qvals</span> <span class="o">=</span> <span class="n">norm</span><span class="o">.</span><span class="n">isf</span><span class="p">(</span><span class="n">pvals</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pvals</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asmatrix</span><span class="p">(</span><span class="n">chol</span><span class="p">(</span><span class="n">sigma</span><span class="p">))</span><span class="o">.</span><span class="n">I</span>
+    <span class="k">except</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">LinAlgError</span><span class="p">:</span>
+          <span class="c"># for non positive definite matrix default to z-score correction.</span>
+          <span class="k">return</span> <span class="n">zscore_combine</span><span class="p">(</span><span class="n">pvals</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
+
+    <span class="n">qvals</span> <span class="o">=</span> <span class="n">C</span> <span class="o">*</span> <span class="n">qvals</span>
+    <span class="n">Cp</span> <span class="o">=</span> <span class="n">qvals</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qvals</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">norm</span><span class="o">.</span><span class="n">sf</span><span class="p">(</span><span class="n">Cp</span><span class="p">)</span>
+</div>
+<span class="k">def</span> <span class="nf">zscore_combine</span><span class="p">(</span><span class="n">pvals</span><span class="p">,</span> <span class="n">sigma</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">sigma</span><span class="p">)):</span> <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">z</span><span class="p">,</span> <span class="n">L</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">norm</span><span class="o">.</span><span class="n">isf</span><span class="p">(</span><span class="n">pvals</span><span class="p">)),</span> <span class="nb">len</span><span class="p">(</span><span class="n">pvals</span><span class="p">)</span>
+    <span class="n">sz</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">L</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">L</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">tril</span><span class="p">(</span><span class="n">sigma</span><span class="p">,</span> <span class="n">k</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">norm</span><span class="o">.</span><span class="n">sf</span><span class="p">(</span><span class="n">z</span> <span class="o">/</span> <span class="n">sz</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_combine_cluster</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">methylations</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span> <span class="n">robust</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+        <span class="n">_corr</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;function called by z-score and liptak to get pvalues&quot;&quot;&quot;</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="p">[(</span><span class="n">RLM</span> <span class="k">if</span> <span class="n">robust</span> <span class="k">else</span> <span class="n">OLS</span><span class="p">)</span><span class="o">.</span><span class="n">from_formula</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">covs</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">methylation</span> <span class="ow">in</span> <span class="n">methylations</span><span class="p">]</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">par</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">exog_names</span><span class="p">)</span>
+                   <span class="k">if</span> <span class="n">par</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">coef</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">pvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">r</span><span class="o">.</span><span class="n">pvalues</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">res</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">pvals</span><span class="p">[</span><span class="n">pvals</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="mf">9e-16</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">r</span><span class="o">.</span><span class="n">tvalues</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">res</span><span class="p">]),</span>
+                <span class="n">coef</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">r</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">res</span><span class="p">]),</span>
+                <span class="n">covar</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">exog_names</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span>
+                <span class="n">p</span><span class="o">=</span><span class="n">pvals</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">pvals</span><span class="p">)])</span>
+    <span class="c"># save some time for bumphunting where we don&#39;t need</span>
+    <span class="c"># the correlation.</span>
+    <span class="k">if</span> <span class="n">_corr</span><span class="p">:</span>
+        <span class="n">res</span><span class="p">[</span><span class="s">&#39;corr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">corr</span><span class="p">(</span><span class="n">methylations</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">pvals</span><span class="p">)])</span>
+    <span class="k">return</span> <span class="n">res</span>
+
+<span class="k">def</span> <span class="nf">bayes_cluster</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="liptak_cluster"><a class="viewcode-back" href="../../crystal.html#crystal.crystal.liptak_cluster">[docs]</a><span class="k">def</span> <span class="nf">liptak_cluster</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span> <span class="n">robust</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Model clusters by fitting model at each site and then</span>
+<span class="sd">    combining using :func:`~stouffer_liptak`. same signature as</span>
+<span class="sd">    :func:`~gee_cluster`&quot;&quot;&quot;</span>
+    <span class="n">methylations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">f</span><span class="o">.</span><span class="n">values</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">])</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">_combine_cluster</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">methylations</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span> <span class="n">robust</span><span class="o">=</span><span class="n">robust</span><span class="p">)</span>
+    <span class="n">r</span><span class="p">[</span><span class="s">&#39;p&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stouffer_liptak_combine</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s">&#39;p&#39;</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s">&#39;corr&#39;</span><span class="p">])</span>
+    <span class="n">r</span><span class="p">[</span><span class="s">&#39;t&#39;</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s">&#39;coef&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s">&#39;t&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">r</span><span class="p">[</span><span class="s">&#39;coef&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;corr&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">r</span>
+</div>
+<div class="viewcode-block" id="zscore_cluster"><a class="viewcode-back" href="../../crystal.html#crystal.crystal.zscore_cluster">[docs]</a><span class="k">def</span> <span class="nf">zscore_cluster</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span> <span class="n">robust</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Model clusters by fitting model at each site and then</span>
+<span class="sd">    combining using the z-score method. Same signature as</span>
+<span class="sd">    :func:`~gee_cluster`&quot;&quot;&quot;</span>
+    <span class="n">methylations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">f</span><span class="o">.</span><span class="n">values</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">])</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">_combine_cluster</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">methylations</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span> <span class="n">robust</span><span class="o">=</span><span class="n">robust</span><span class="p">)</span>
+    <span class="n">r</span><span class="p">[</span><span class="s">&#39;p&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">zscore_combine</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s">&#39;p&#39;</span><span class="p">],</span> <span class="n">r</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;corr&#39;</span><span class="p">))</span>
+    <span class="n">r</span><span class="p">[</span><span class="s">&#39;t&#39;</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s">&#39;coef&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s">&#39;t&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">r</span><span class="p">[</span><span class="s">&#39;coef&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">r</span>
+
+<span class="c"># function for comparing with bump_cluster</span>
+<span class="c"># takes the return value of _combine_cluster and returns a single numeric value</span></div>
+<span class="k">def</span> <span class="nf">coef_sum</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
+    <span class="n">coefs</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s">&#39;coef&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">c</span> <span class="o">+</span> <span class="n">cutoff</span><span class="p">)</span> <span class="k">if</span> <span class="n">c</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">c</span> <span class="o">-</span> <span class="n">cutoff</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coefs</span><span class="p">)</span>
+
+<span class="c"># function for comparing with bump_cluster</span>
+<span class="k">def</span> <span class="nf">t_sum</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="n">coefs</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s">&#39;t&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">c</span> <span class="o">+</span> <span class="n">cutoff</span><span class="p">)</span> <span class="k">if</span> <span class="n">c</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">c</span> <span class="o">-</span> <span class="n">cutoff</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coefs</span><span class="p">)</span>
+
+<span class="c"># function for comparing with bump_cluster</span>
+<span class="k">def</span> <span class="nf">coef_t_prod</span><span class="p">(</span><span class="n">coefs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">([</span><span class="n">coefs</span><span class="p">[</span><span class="s">&#39;t&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">coefs</span><span class="p">[</span><span class="s">&#39;coef&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="s">&#39;coef&#39;</span><span class="p">]))])</span>
+
+
+<span class="k">def</span> <span class="nf">_cluster_coefs</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="n">coef</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Fast coefficient calculation for bumping.&quot;&quot;&quot;</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">patsy</span><span class="o">.</span><span class="n">dmatrix</span><span class="p">(</span><span class="n">formula</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;~&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">covs</span><span class="p">,</span> <span class="n">return_type</span><span class="o">=</span><span class="s">&quot;dataframe&quot;</span><span class="p">)</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">coef</span><span class="p">)]</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">resids</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">lstsq</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="n">coefs</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="k">return</span> <span class="n">coefs</span>
+
+<div class="viewcode-block" id="bump_cluster"><a class="viewcode-back" href="../../crystal.html#crystal.crystal.bump_cluster">[docs]</a><span class="k">def</span> <span class="nf">bump_cluster</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span> <span class="n">nsims</span><span class="o">=</span><span class="mi">20000</span><span class="p">,</span>
+        <span class="n">value_fn</span><span class="o">=</span><span class="n">coef_sum</span><span class="p">,</span> <span class="n">robust</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Model clusters by fitting model at each site and then comparing some</span>
+<span class="sd">    metric to the same metric from models fit to simulated data.</span>
+<span class="sd">    Uses sequential Monte-carlo to stop once we know the simulated p-value is</span>
+<span class="sd">    high (since we are always interested in low p-values).</span>
+
+<span class="sd">    Same signature as :func:`~gee_cluster`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">methylations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">f</span><span class="o">.</span><span class="n">values</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">])</span>
+    <span class="n">orig</span> <span class="o">=</span> <span class="n">_combine_cluster</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">methylations</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span> <span class="n">robust</span><span class="o">=</span><span class="n">robust</span><span class="p">)</span>
+    <span class="n">obs_coef</span> <span class="o">=</span> <span class="n">value_fn</span><span class="p">(</span><span class="n">orig</span><span class="p">)</span>
+
+    <span class="n">reduced_residuals</span><span class="p">,</span> <span class="n">reduced_fitted</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+
+    <span class="c"># get the reduced residuals and models so we can shuffle</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">methylation</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">methylations</span><span class="p">):</span>
+        <span class="n">y</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">patsy</span><span class="o">.</span><span class="n">dmatrices</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="n">return_type</span><span class="o">=</span><span class="s">&#39;dataframe&#39;</span><span class="p">)</span>
+        <span class="n">idxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">par</span> <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">par</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">coef</span><span class="p">)]</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;too many coefficents like&#39;</span><span class="p">,</span> <span class="n">coef</span><span class="p">)</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">idxs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">fitr</span> <span class="o">=</span> <span class="p">(</span><span class="n">RLM</span> <span class="k">if</span> <span class="n">robust</span> <span class="k">else</span> <span class="n">OLS</span><span class="p">)(</span><span class="n">y</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+
+        <span class="n">reduced_residuals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fitr</span><span class="o">.</span><span class="n">resid</span><span class="p">))</span>
+        <span class="n">reduced_fitted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fitr</span><span class="o">.</span><span class="n">fittedvalues</span><span class="p">))</span>
+
+    <span class="n">ngt</span><span class="p">,</span> <span class="n">idxs</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">methylations</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+    <span class="k">for</span> <span class="n">isim</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsims</span><span class="p">):</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span>
+
+        <span class="n">fakem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">rf</span> <span class="o">+</span> <span class="n">rr</span><span class="p">[</span><span class="n">idxs</span><span class="p">]</span> <span class="k">for</span> <span class="n">rf</span><span class="p">,</span> <span class="n">rr</span> <span class="ow">in</span> <span class="n">izip</span><span class="p">(</span><span class="n">reduced_fitted</span><span class="p">,</span>
+            <span class="n">reduced_residuals</span><span class="p">)])</span>
+        <span class="k">assert</span> <span class="n">fakem</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">methylations</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="n">coefs</span> <span class="o">=</span> <span class="n">_cluster_coefs</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">fakem</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="n">coef</span><span class="p">)</span>
+        <span class="n">ccut</span> <span class="o">=</span> <span class="n">value_fn</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">coef</span><span class="o">=</span><span class="n">coefs</span><span class="p">))</span>
+
+        <span class="c">#sim = _combine_cluster(formula, fakem, covs, coef, robust=robust,</span>
+        <span class="c">#        _corr=False)</span>
+        <span class="c">#ccut = value_fn(sim)</span>
+
+        <span class="n">ngt</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ccut</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">abs</span><span class="p">(</span><span class="n">obs_coef</span><span class="p">)</span>
+        <span class="c"># sequential monte-carlo.</span>
+        <span class="k">if</span> <span class="n">ngt</span> <span class="o">&gt;</span> <span class="mi">6</span><span class="p">:</span> <span class="k">break</span>
+
+    <span class="n">orig</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;corr&#39;</span><span class="p">)</span>
+    <span class="c"># extra 1 in denom for 0-index</span>
+    <span class="n">orig</span><span class="p">[</span><span class="s">&#39;n_sim&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">isim</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="c"># extra 1 so we can&#39;t get 0 p-value</span>
+    <span class="n">orig</span><span class="p">[</span><span class="s">&#39;p&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">ngt</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">orig</span><span class="p">[</span><span class="s">&#39;n_sim&#39;</span><span class="p">])</span>
+    <span class="n">orig</span><span class="p">[</span><span class="s">&#39;coef&#39;</span><span class="p">],</span> <span class="n">orig</span><span class="p">[</span><span class="s">&#39;t&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">orig</span><span class="p">[</span><span class="s">&#39;coef&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">orig</span><span class="p">[</span><span class="s">&#39;t&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">orig</span>
+</div>
+<div class="viewcode-block" id="wrapper"><a class="viewcode-back" href="../../crystal.html#crystal.crystal.wrapper">[docs]</a><span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">model_fn</span><span class="p">,</span> <span class="n">formula</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">clin_df</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;wrap the user-defined functions to return everything we expect and</span>
+<span class="sd">    to call just OLS when there is a single probe.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">kwargs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cluster</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">model_fn</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span>
+                <span class="n">cluster</span><span class="p">,</span>
+                <span class="n">clin_df</span><span class="p">,</span>
+                <span class="n">coef</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">one_cluster</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">cluster</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">clin_df</span><span class="p">,</span> <span class="n">coef</span><span class="p">)</span>
+    <span class="n">r</span><span class="p">[</span><span class="s">&#39;time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t</span>
+    <span class="n">r</span><span class="p">[</span><span class="s">&#39;chrom&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cluster</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">chrom</span>
+    <span class="n">r</span><span class="p">[</span><span class="s">&#39;start&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cluster</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">r</span><span class="p">[</span><span class="s">&#39;end&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cluster</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">position</span>
+    <span class="n">r</span><span class="p">[</span><span class="s">&#39;n_sites&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cluster</span><span class="p">)</span>
+    <span class="n">r</span><span class="p">[</span><span class="s">&#39;sites&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">spos</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">]</span>
+    <span class="n">r</span><span class="p">[</span><span class="s">&#39;var&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coef</span>
+    <span class="n">r</span><span class="p">[</span><span class="s">&#39;cluster&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cluster</span>
+    <span class="k">return</span> <span class="n">r</span>
+</div>
+<div class="viewcode-block" id="model_clusters"><a class="viewcode-back" href="../../crystal.html#crystal.crystal.model_clusters">[docs]</a><span class="k">def</span> <span class="nf">model_clusters</span><span class="p">(</span><span class="n">clust_iter</span><span class="p">,</span> <span class="n">clin_df</span><span class="p">,</span> <span class="n">formula</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span> <span class="n">model_fn</span><span class="o">=</span><span class="n">gee_cluster</span><span class="p">,</span>
+        <span class="n">pool</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">n_cpu</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;For each cluster in an iterable, evaluate the chosen model and</span>
+<span class="sd">    yield a dictionary of information</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    clust_iter : iterable</span>
+<span class="sd">        iterable of clusters</span>
+
+<span class="sd">    clin_df : pandas.DataFrame</span>
+<span class="sd">        Contains covariates from `formula`</span>
+
+<span class="sd">    formula : str</span>
+<span class="sd">        R (patsy) style formula. Must contain &#39;methylation&#39;: e.g.:</span>
+<span class="sd">        methylation ~ age + gender + race</span>
+
+<span class="sd">    coef : str</span>
+<span class="sd">        The coefficient of interest in the model, e.g. &#39;age&#39;</span>
+
+<span class="sd">    model_fn : fn</span>
+<span class="sd">        A function with signature</span>
+<span class="sd">        fn(formula, methylation, covs, coef, kwargs)</span>
+<span class="sd">        that returns a dictionary with at least p-value and coef</span>
+
+<span class="sd">    n_cpu : int</span>
+
+<span class="sd">    kwargs: dict</span>
+<span class="sd">        arguments sent to `model_fn`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">ts</span><span class="o">.</span><span class="n">pmap</span><span class="p">(</span><span class="n">wrapper</span><span class="p">,</span> <span class="p">((</span><span class="n">model_fn</span><span class="p">,</span> <span class="n">formula</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">clin_df</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span>
+                                <span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">cluster</span> <span class="ow">in</span> <span class="n">clust_iter</span><span class="p">),</span> <span class="n">n_cpu</span><span class="p">,</span>
+                                <span class="n">p</span><span class="o">=</span><span class="n">pool</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">r</span>
+
+</div>
+<div class="viewcode-block" id="Feature"><a class="viewcode-back" href="../../crystal.html#crystal.crystal.Feature">[docs]</a><span class="k">class</span> <span class="nc">Feature</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A feature object that can and likely should be used by all programs that</span>
+<span class="sd">    call `crystal`. Takes a chromosome, a position and a list of float</span>
+<span class="sd">    values that are the methylation measurements (should be logit transformed).</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    chrom: str</span>
+
+<span class="sd">    position: int</span>
+
+<span class="sd">    values: list</span>
+
+<span class="sd">    spos: str</span>
+<span class="sd">        string position (chr1:12354)</span>
+
+<span class="sd">    rho_min : float</span>
+<span class="sd">        minimum spearman&#39;s R to be considered correlated</span>
+
+<span class="sd">    ovalues : list</span>
+<span class="sd">        other values potentially used by modeling functions</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__slots__</span> <span class="o">=</span> <span class="s">&quot;chrom position values spos rho_min ovalues&quot;</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chrom</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">ovalues</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">rho_min</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spos</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">:</span><span class="si">%i</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chrom</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">chrom</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rho_min</span> <span class="o">=</span> <span class="n">rho_min</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ovalues</span> <span class="o">=</span> <span class="n">ovalues</span>
+
+<div class="viewcode-block" id="Feature.distance"><a class="viewcode-back" href="../../crystal.html#crystal.crystal.Feature.distance">[docs]</a>    <span class="k">def</span> <span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Distance between this feature and another.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chrom</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">chrom</span><span class="p">:</span> <span class="k">return</span> <span class="n">sys</span><span class="o">.</span><span class="n">maxint</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">position</span>
+</div>
+<div class="viewcode-block" id="Feature.is_correlated"><a class="viewcode-back" href="../../crystal.html#crystal.crystal.Feature.is_correlated">[docs]</a>    <span class="k">def</span> <span class="nf">is_correlated</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return boolean indicating  correlation with other.&quot;&quot;&quot;</span>
+        <span class="n">rho</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">spearmanr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rho</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho_min</span>
+</div>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;{cls}({spos})&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">spos</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spos</span><span class="p">,</span>
+                                        <span class="n">cls</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__cmp__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">cmp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chrom</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">chrom</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">cmp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">,</span>
+                                                   <span class="n">other</span><span class="o">.</span><span class="n">position</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="CountFeature"><a class="viewcode-back" href="../../crystal.html#crystal.crystal.CountFeature">[docs]</a><span class="k">class</span> <span class="nc">CountFeature</span><span class="p">(</span><span class="n">Feature</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Feature Class that supports count data.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chrom</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">methylated</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">rho_min</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+        <span class="n">Feature</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chrom</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">methylated</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">rho_min</span><span class="o">=</span><span class="n">rho_min</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">counts</span> <span class="o">=</span> <span class="n">counts</span>
+        <span class="c"># use ratios for correlation.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">methylated</span> <span class="o">/</span> <span class="n">counts</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">methylated</span> <span class="o">=</span> <span class="n">methylated</span></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2014, Brent S. Pedersen.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

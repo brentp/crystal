@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>plot &mdash; crystal 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-3.1.0/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-3.1.0/css/bootstrap-theme.min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.1.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="top" title="crystal 0.0.1 documentation" href="index.html" />
+    <link rel="next" title="evaluate" href="evaluate.html" />
+    <link rel="prev" title="crystal" href="crystal.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          crystal</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.0.1</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            <li class="divider-vertical"></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="crystal.html">crystal</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluate.html">evaluate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regions.html">regions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulate.html">simulate</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">plot</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="crystal.html" title="Previous Chapter: crystal"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm">&laquo; crystal</span>
+    </a>
+  </li>
+  <li>
+    <a href="evaluate.html" title="Next Chapter: evaluate"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm">evaluate &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="_sources/plot.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      
+  <div class="section" id="plot">
+<h1>plot<a class="headerlink" href="#plot" title="Permalink to this headline">¶</a></h1>
+<p><strong>crystal.plot</strong> contains functions for plotting clusters.</p>
+<span class="target" id="module-crystal.plot"></span><p>Plotting functions for Clusters.</p>
+<p>Note that some visualizations work best with datasets that
+have fewer samples while some are more informative with more
+samples.</p>
+<dl class="function">
+<dt id="crystal.plot.barplot_cluster">
+<tt class="descclassname">crystal.plot.</tt><tt class="descname">barplot_cluster</tt><big>(</big><em>cluster</em>, <em>covs</em>, <em>normed=False</em>, <em>n_bins=50</em><big>)</big><a class="reference internal" href="_modules/crystal/plot.html#barplot_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.plot.barplot_cluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a barplot of a cluster. Only works for 2-class data,
+e.g. gender or case-control</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">crystal</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">crystal.utils</span> <span class="kn">as</span> <span class="nn">cu</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">covs</span><span class="p">,</span> <span class="n">cluster</span> <span class="o">=</span> <span class="n">cu</span><span class="o">.</span><span class="n">real_cluster</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">formula</span> <span class="o">=</span> <span class="s">&quot;methylation ~ age + gender&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">crystal</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="n">crystal</span><span class="o">.</span><span class="n">zscore_cluster</span><span class="p">,</span> <span class="n">formula</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="s">&quot;gender&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crystal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">barplot_cluster</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">covs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href=".//plot-1.py">Source code</a>, <a class="reference external" href=".//plot-1.png">png</a>, <a class="reference external" href=".//plot-1.hires.png">hires.png</a>, <a class="reference external" href=".//plot-1.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="_images/plot-1.png" src="_images/plot-1.png" />
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.plot.factorplot_cluster">
+<tt class="descclassname">crystal.plot.</tt><tt class="descname">factorplot_cluster</tt><big>(</big><em>cluster</em>, <em>cov</em>, <em>palette='Set1'</em>, <em>ilogit=False</em><big>)</big><a class="reference internal" href="_modules/crystal/plot.html#factorplot_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.plot.factorplot_cluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a factor plot.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">crystal</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">crystal.utils</span> <span class="kn">as</span> <span class="nn">cu</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">covs</span><span class="p">,</span> <span class="n">cluster</span> <span class="o">=</span> <span class="n">cu</span><span class="o">.</span><span class="n">real_cluster</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">formula</span> <span class="o">=</span> <span class="s">&quot;methylation ~ age + gender&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">crystal</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="n">crystal</span><span class="o">.</span><span class="n">zscore_cluster</span><span class="p">,</span> <span class="n">formula</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="s">&quot;gender&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crystal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">factorplot_cluster</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">covs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href=".//plot-2.py">Source code</a>, <a class="reference external" href=".//plot-2.png">png</a>, <a class="reference external" href=".//plot-2.hires.png">hires.png</a>, <a class="reference external" href=".//plot-2.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="_images/plot-2.png" src="_images/plot-2.png" />
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.plot.plot_cluster">
+<tt class="descclassname">crystal.plot.</tt><tt class="descname">plot_cluster</tt><big>(</big><em>cluster</em>, <em>covs</em>, <em>normed=False</em><big>)</big><a class="reference internal" href="_modules/crystal/plot.html#plot_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.plot.plot_cluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot a cluster (output from <cite>crystal.model_cluster</cite>)</p>
+<p>Plot will vary depending on if cluster[&#8216;var&#8217;] is dichotomous
+or continuous.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">crystal</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">crystal.utils</span> <span class="kn">as</span> <span class="nn">cu</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">covs</span><span class="p">,</span> <span class="n">cluster</span> <span class="o">=</span> <span class="n">cu</span><span class="o">.</span><span class="n">real_cluster</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">formula</span> <span class="o">=</span> <span class="s">&quot;methylation ~ age + gender&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">crystal</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="n">crystal</span><span class="o">.</span><span class="n">zscore_cluster</span><span class="p">,</span> <span class="n">formula</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="s">&quot;gender&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crystal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">plot_cluster</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">covs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href=".//plot-3.py">Source code</a>, <a class="reference external" href=".//plot-3.png">png</a>, <a class="reference external" href=".//plot-3.hires.png">hires.png</a>, <a class="reference external" href=".//plot-3.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="_images/plot-3.png" src="_images/plot-3.png" />
+</div>
+<p>We will get a different plot if the cluster is a continuous variable.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.plot.spaghetti_plot">
+<tt class="descclassname">crystal.plot.</tt><tt class="descname">spaghetti_plot</tt><big>(</big><em>cluster</em>, <em>cov</em>, <em>ax=None</em>, <em>ilogit=False</em>, <em>palette='Set1'</em><big>)</big><a class="reference internal" href="_modules/crystal/plot.html#spaghetti_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.plot.spaghetti_plot" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Create a spaghetti plot of a modeled cluster. This is best when the</dt>
+<dd>number of samples is less than about 20. Otherwise, use
+<a class="reference internal" href="#crystal.plot.plot_cluster" title="crystal.plot.plot_cluster"><tt class="xref py py-func docutils literal"><span class="pre">plot_cluster()</span></tt></a></dd>
+</dl>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">crystal</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">crystal.utils</span> <span class="kn">as</span> <span class="nn">cu</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">covs</span><span class="p">,</span> <span class="n">cluster</span> <span class="o">=</span> <span class="n">cu</span><span class="o">.</span><span class="n">real_count_cluster</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">covs</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">formula</span> <span class="o">=</span> <span class="s">&quot;methylation ~ ko&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">crystal</span><span class="o">.</span><span class="n">wrapper</span><span class="p">(</span><span class="n">crystal</span><span class="o">.</span><span class="n">zscore_cluster</span><span class="p">,</span> <span class="n">formula</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="s">&quot;ko&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crystal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">spaghetti_plot</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">covs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href=".//plot-4.py">Source code</a>, <a class="reference external" href=".//plot-4.png">png</a>, <a class="reference external" href=".//plot-4.hires.png">hires.png</a>, <a class="reference external" href=".//plot-4.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="_images/plot-4.png" src="_images/plot-4.png" />
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">in the case of CountFeature as from sequence data, the points
+are sized by the sequencing depth.</p>
+</div>
+</dd></dl>
+
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2014, Brent S. Pedersen.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

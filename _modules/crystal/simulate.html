@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>crystal.simulate &mdash; crystal 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/bootstrap-3.1.0/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/bootstrap-3.1.0/css/bootstrap-theme.min.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-3.1.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+    <link rel="top" title="crystal 0.0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          crystal</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.0.1</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            <li class="divider-vertical"></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../crystal.html">crystal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plot.html">plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../evaluate.html">evaluate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../regions.html">regions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../simulate.html">simulate</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      
+  <h1>Source code for crystal.simulate</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">toolshed</span> <span class="kn">as</span> <span class="nn">ts</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span> <span class="kn">as</span> <span class="nn">ss</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">CountFeature</span>
+<span class="kn">from</span> <span class="nn">statsmodels.genmod.families</span> <span class="kn">import</span> <span class="n">Poisson</span>
+
+<span class="n">SIZES</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">SIZES</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">SIZES</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">200</span>
+
+<div class="viewcode-block" id="rr_cluster"><a class="viewcode-back" href="../../simulate.html#crystal.simulate.rr_cluster">[docs]</a><span class="k">def</span> <span class="nf">rr_cluster</span><span class="p">(</span><span class="n">cluster</span><span class="p">,</span> <span class="n">covs</span><span class="p">,</span> <span class="n">formula</span><span class="o">=</span><span class="s">&quot;methylation ~ age&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Set cluster values to reduced-residuals.&quot;&quot;&quot;</span>
+    <span class="n">cluster</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">cluster</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">statsmodels.formula.api</span> <span class="kn">import</span> <span class="n">ols</span><span class="p">,</span> <span class="n">glm</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cluster</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">CountFeature</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">:</span>
+            <span class="n">covs</span><span class="p">[</span><span class="s">&#39;methylation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">methylated</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">methylated</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">glm</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span>
+                                           <span class="n">covs</span><span class="p">,</span>
+                                           <span class="n">exposure</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">counts</span><span class="p">,</span>
+                                           <span class="n">family</span><span class="o">=</span><span class="n">Poisson</span><span class="p">()</span>
+                                          <span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span><span class="o">.</span><span class="n">resid</span>
+                                       <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">values</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">methylated</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">/</span> <span class="n">f</span><span class="o">.</span><span class="n">counts</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">:</span>
+            <span class="n">covs</span><span class="p">[</span><span class="s">&#39;methylation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">values</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">ols</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">covs</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span><span class="o">.</span><span class="n">resid</span>
+    <span class="k">return</span> <span class="n">cluster</span>
+
+</div>
+<span class="n">choice</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span>
+
+<div class="viewcode-block" id="simulate_cluster"><a class="viewcode-back" href="../../simulate.html#crystal.simulate.simulate_cluster">[docs]</a><span class="k">def</span> <span class="nf">simulate_cluster</span><span class="p">(</span><span class="n">cluster</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">class_order</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                     <span class="n">get_reduced_residuals</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">grr_args</span><span class="o">=</span><span class="p">()):</span>
+    <span class="sd">&quot;&quot;&quot;Modify the data in existing clusters to create or remove and effect.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    cluster : list of clusters</span>
+<span class="sd">              *should* include clusters of length 1.</span>
+
+<span class="sd">    w : float</span>
+<span class="sd">        w = 0 generates random data. Higher values are</span>
+<span class="sd">        more likely to separate the groups.</span>
+
+<span class="sd">    class_order : np.array of 0/1</span>
+<span class="sd">        list of same length as cluster[*].values indicating</span>
+<span class="sd">        which group (0 or 1) each sample belongs to.</span>
+
+<span class="sd">    get_reduced_residuals : function</span>
+<span class="sd">        optional, see :func:`~simulate_regions`</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cluster</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">CountFeature</span><span class="p">):</span>
+        <span class="n">attrs</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;methylated&#39;</span><span class="p">,</span> <span class="s">&#39;counts&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">attrs</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c"># copy since we modify the data in-place.</span>
+    <span class="k">if</span> <span class="n">get_reduced_residuals</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">cluster</span> <span class="o">=</span> <span class="p">[</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cluster</span> <span class="o">=</span> <span class="n">get_reduced_residuals</span><span class="p">(</span><span class="n">cluster</span><span class="p">,</span> <span class="o">*</span><span class="n">grr_args</span><span class="p">)</span>
+
+    <span class="c"># make this one faster since we don&#39;t need to keep track of high/low</span>
+    <span class="k">if</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cluster</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">:</span>
+            <span class="n">feature</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">feature</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">idxs</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">feature</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">feature</span><span class="p">,</span> <span class="n">attr</span><span class="p">)[</span><span class="n">idxs</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">cluster</span>
+
+
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cluster</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    <span class="n">nH</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">nL</span> <span class="o">=</span> <span class="n">nH</span> <span class="o">+</span> <span class="mi">1</span>
+
+
+    <span class="k">if</span> <span class="n">class_order</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">class_order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">cluster</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">class_order</span><span class="p">[</span><span class="n">nH</span><span class="p">:]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nL</span> <span class="o">=</span> <span class="p">(</span><span class="n">class_order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">nH</span> <span class="o">=</span> <span class="p">(</span><span class="n">class_order</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+    <span class="k">assert</span> <span class="n">nL</span> <span class="o">+</span> <span class="n">nH</span> <span class="o">==</span> <span class="n">N</span>
+
+    <span class="n">n_probes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cluster</span><span class="p">)</span>
+    <span class="n">new_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_probes</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
+
+    <span class="c"># choose a random probe from the set.</span>
+    <span class="c"># the values across the cluster will be determined</span>
+    <span class="c"># by the values in this randomly chose probe.</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="n">choice</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_probes</span><span class="p">))</span><span class="c">#[0] if n_probes &gt; 1 else 0</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">cluster</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+    <span class="n">idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+
+    <span class="c"># just pull based on the index. so we need to sort the values</span>
+    <span class="c"># as well.</span>
+    <span class="n">idx_order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="c"># HI</span>
+    <span class="n">ords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">N</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">ords</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">ords</span><span class="p">)</span><span class="o">**</span><span class="n">w</span>
+    <span class="n">h_idxs</span> <span class="o">=</span> <span class="n">choice</span><span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">ords</span><span class="o">/</span><span class="n">ords</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">size</span><span class="o">=</span><span class="n">nH</span><span class="p">)</span>
+
+    <span class="c"># LO</span>
+    <span class="n">l_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">h_idxs</span><span class="p">,</span> <span class="n">assume_unique</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">l_idxs</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+    <span class="n">ords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nL</span> <span class="o">+</span> <span class="mf">1.</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">nL</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">ords</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">l_idxs</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">ords</span> <span class="o">=</span> <span class="p">(</span><span class="n">ords</span><span class="p">)</span><span class="o">**</span><span class="n">w</span>
+    <span class="n">l_idxs</span> <span class="o">=</span> <span class="n">choice</span><span class="p">(</span><span class="n">l_idxs</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">ords</span><span class="o">/</span><span class="n">ords</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">size</span><span class="o">=</span><span class="n">nL</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">h_idxs</span><span class="p">,</span> <span class="n">l_idxs</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_probes</span><span class="p">):</span>
+        <span class="n">tmph</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cluster</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">idx_order</span><span class="p">][</span><span class="n">h_idxs</span><span class="p">])</span>
+        <span class="n">tmpl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cluster</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">idx_order</span><span class="p">][</span><span class="n">l_idxs</span><span class="p">])</span>
+        <span class="n">cluster</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">class_order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmpl</span>
+        <span class="n">cluster</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">class_order</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmph</span>
+        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cluster</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">attr</span><span class="p">)[</span><span class="n">idx_order</span><span class="p">]</span>
+            <span class="n">hi_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="n">idx_order</span><span class="p">][</span><span class="n">h_idxs</span><span class="p">])</span>
+            <span class="n">lo_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="n">idx_order</span><span class="p">][</span><span class="n">l_idxs</span><span class="p">])</span>
+            <span class="n">vals</span><span class="p">[</span><span class="n">class_order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">lo_vals</span>
+            <span class="n">vals</span><span class="p">[</span><span class="n">class_order</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">hi_vals</span>
+
+    <span class="k">return</span> <span class="n">cluster</span>
+
+</div>
+<div class="viewcode-block" id="simulate_regions"><a class="viewcode-back" href="../../simulate.html#crystal.simulate.simulate_regions">[docs]</a><span class="k">def</span> <span class="nf">simulate_regions</span><span class="p">(</span><span class="n">clust_list</span><span class="p">,</span> <span class="n">region_fh</span><span class="p">,</span> <span class="n">sizes</span><span class="o">=</span><span class="n">SIZES</span><span class="p">,</span> <span class="n">class_order</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">get_reduced_residuals</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">get_reduced_residuals_args</span><span class="o">=</span><span class="p">()):</span>
+    <span class="sd">&quot;&quot;&quot;Simulate regions and randomize others.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    clust_list : list of clusters</span>
+<span class="sd">        should include clusters of length 1.</span>
+
+<span class="sd">    region_fh : filehandle</span>
+<span class="sd">        a BED file of all position will be written to this</span>
+<span class="sd">        file. The 4th column will indicate true/false indicating</span>
+<span class="sd">        if it was simulated to have a difference. The fifth</span>
+<span class="sd">        column will indicate the size of the cluster it was in.</span>
+
+<span class="sd">    size : dict</span>
+<span class="sd">        keys of the clust_size and values of how many clusters</span>
+<span class="sd">        to create of that size. Default is to create 100 of each</span>
+<span class="sd">        size from 3 to 8 and 200 clusters of size one and 2. All</span>
+<span class="sd">        others are randomized.</span>
+
+<span class="sd">    classes : np.array</span>
+<span class="sd">        same length as cluster[*].values indicating</span>
+<span class="sd">        which group each sample belongs to.</span>
+
+<span class="sd">    seed: int</span>
+
+<span class="sd">    get_reduced_residuals : function</span>
+<span class="sd">        If this parameter is None, then they values are shuffled as they</span>
+<span class="sd">        are received.</span>
+<span class="sd">        A function that accepts a cluster and returns residuals of the reduced</span>
+<span class="sd">        model. e.g. if the full model of interest is:</span>
+<span class="sd">            methylation ~ disease + age + gender</span>
+<span class="sd">        the reduced model would be:</span>
+<span class="sd">            methylation ~ age + gender</span>
+<span class="sd">        so that only the residuals of the reduced model are shuffled and the</span>
+<span class="sd">        other effects should remain. This will implement the bootsrap for</span>
+<span class="sd">        linear models from Efron and Tibshirani.</span>
+<span class="sd">        An Example function would be: :func:`~rr_cluster`</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    generator of clusters in the same order as clust_list.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clust_list</span><span class="p">,</span> <span class="nb">list</span><span class="p">),</span> <span class="p">(</span><span class="s">&quot;need a list due to multiple </span><span class="se">\</span>
+<span class="s">            iterations&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">class_order</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">class_order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">class_order</span><span class="p">)</span>
+        <span class="n">classes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">class_order</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="n">classes</span><span class="p">,</span> <span class="s">&quot;should have 2 unique&quot;</span><span class="p">)</span>
+        <span class="n">classes</span> <span class="o">=</span> <span class="p">{</span><span class="n">classes</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="mi">0</span><span class="p">,</span> <span class="n">classes</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="n">class_order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">classes</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">class_order</span><span class="p">])</span>
+
+    <span class="n">clusts</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">clust</span> <span class="ow">in</span> <span class="n">clust_list</span><span class="p">:</span>
+        <span class="n">clusts</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">clust</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">clust</span><span class="p">)</span>
+    <span class="n">clusts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">clusts</span><span class="p">)</span>
+
+    <span class="n">sim_idxs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c"># for each size of clust, choose n random indices based on how</span>
+    <span class="c"># many of that cluster we saw.</span>
+    <span class="k">for</span> <span class="n">size</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">sizes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">clusts</span><span class="p">[</span><span class="n">size</span><span class="p">]))</span>
+        <span class="c"># get the indexes of the clusters we want</span>
+        <span class="n">sim_idxs</span><span class="p">[</span><span class="n">size</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">n</span><span class="p">,</span>
+                                                    <span class="nb">len</span><span class="p">(</span><span class="n">idxs</span><span class="p">)),</span> <span class="n">replace</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+
+    <span class="n">fmt</span> <span class="o">=</span> <span class="s">&quot;{chrom}</span><span class="se">\t</span><span class="s">{start}</span><span class="se">\t</span><span class="s">{end}</span><span class="se">\t</span><span class="s">{truth}</span><span class="se">\t</span><span class="s">{size}</span><span class="se">\n</span><span class="s">&quot;</span>
+    <span class="n">region_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">fmt2header</span><span class="p">(</span><span class="n">fmt</span><span class="p">))</span>
+
+    <span class="n">seen</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">clust_list</span><span class="p">:</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c"># need this if block in case we get a cluster longer</span>
+        <span class="c"># than we have in sizes</span>
+        <span class="k">if</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">sim_idxs</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">seen</span><span class="p">[</span><span class="n">l</span><span class="p">]</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span> <span class="ow">in</span> <span class="n">sim_idxs</span><span class="p">[</span><span class="n">l</span><span class="p">])</span>
+            <span class="n">seen</span><span class="p">[</span><span class="n">l</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">truth</span> <span class="o">=</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">sim_idxs</span> <span class="ow">and</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sim_idxs</span><span class="p">[</span><span class="n">l</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
+            <span class="n">region_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">chrom</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">chrom</span><span class="p">,</span>
+                                       <span class="n">start</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">position</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+                                       <span class="n">end</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">position</span><span class="p">,</span>
+                                       <span class="n">truth</span><span class="o">=</span><span class="s">&quot;true&quot;</span> <span class="k">if</span> <span class="n">truth</span> <span class="k">else</span> <span class="s">&quot;false&quot;</span><span class="p">,</span>
+                                       <span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)))</span>
+        <span class="k">yield</span> <span class="n">simulate_cluster</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">class_order</span><span class="p">,</span> <span class="n">get_reduced_residuals</span><span class="p">)</span>
+
+    <span class="n">region_fh</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+</pre></div></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2014, Brent S. Pedersen.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

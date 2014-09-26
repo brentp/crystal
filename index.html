@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>crystal documentation &mdash; crystal 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-3.1.0/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-3.1.0/css/bootstrap-theme.min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.1.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="top" title="crystal 0.0.1 documentation" href="#" />
+    <link rel="next" title="crystal" href="crystal.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">
+          crystal</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.0.1</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            <li class="divider-vertical"></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="crystal.html">crystal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot.html">plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluate.html">evaluate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regions.html">regions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulate.html">simulate</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">crystal documentation</a></li>
+<li><a class="reference internal" href="#api-docs">API Docs</a></li>
+<li><a class="reference internal" href="#introduction">Introduction</a><ul>
+<li><a class="reference internal" href="#quick-start">quick-start</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#example">Example</a></li>
+<li><a class="reference internal" href="#development">Development</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="crystal.html" title="Next Chapter: crystal"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm">crystal &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="_sources/index.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      
+  <div class="section" id="crystal-documentation">
+<h1>crystal documentation<a class="headerlink" href="#crystal-documentation" title="Permalink to this headline">¶</a></h1>
+<p><cite>crystal</cite> is a series python modules to evaluate modeling strategies for correlated data.</p>
+<p>Practically, <cite>crystal</cite> is a python module to assign significance to clusters of
+correlated data. The most likely use-case is for DNA methylation data, but
+it can be use for any correlated data.</p>
+<p>New users should check-out the introductory IPython notebook <a class="reference external" href="http://nbviewer.ipython.org/github/brentp/crystal/blob/master/notebooks/Introduction.ipynb">here</a>.</p>
+<p>Developers interested in evaluating their own method should view <a class="reference external" href="http://nbviewer.ipython.org/github/brentp/crystal/blob/master/notebooks/crystal-methods-evaluation.ipynb">this notebook</a>.</p>
+</div>
+<div class="section" id="api-docs">
+<h1>API Docs<a class="headerlink" href="#api-docs" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="crystal.html">crystal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot.html">plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluate.html">evaluate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regions.html">regions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulate.html">simulate</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>crystal models clusters of correlated data.</p>
+<div class="section" id="quick-start">
+<h2>quick-start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h2>
+<p>All functions to model clusters take:</p>
+<ol class="arabic simple">
+<li>formula: a string model formula in R (or <a class="reference external" href="http://patsy.readthedocs.org/en/latest/">patsy</a> syntax).</li>
+<li>a methylation cluster from <a class="reference external" href="https://github.com/brentp/aclust">aclust</a></li>
+<li>a pandas datafame containing the covariates of interest. The samples in this
+dataframe should be in the <strong>same order</strong> as they are in the methylation cluster.</li>
+<li>a coefficient of interest from the model.</li>
+</ol>
+<p>So a single call would look like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">aclust</span>
+<span class="kn">import</span> <span class="nn">crystal</span>
+
+<span class="n">covs_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">&#39;covariates.csv&#39;</span><span class="p">)</span>
+<span class="n">cluster_iter</span> <span class="o">=</span> <span class="n">aclust</span><span class="o">.</span><span class="n">mclust</span><span class="p">(</span><span class="n">feature_gen</span><span class="p">(),</span> <span class="n">max_dist</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">crystal</span><span class="o">.</span><span class="n">zscore_cluster</span><span class="p">(</span><span class="s">&quot;methylation ~ disease + age + gender&quot;</span><span class="p">,</span>
+                        <span class="nb">next</span><span class="p">(</span><span class="n">cluster_iter</span><span class="p">),</span>
+                        <span class="n">covs_df</span><span class="p">,</span>
+                        <span class="s">&quot;disease&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Which will return a dictionary containing the <cite>p</cite> value, the <cite>coef</cite>
+and the <cite>t</cite> statistic for &#8216;disease&#8217; status. However it is more likely
+that users will want a simple way to model every cluster:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">for</span> <span class="n">cluster</span> <span class="ow">in</span> <span class="n">crystal</span><span class="o">.</span><span class="n">model_clusters</span><span class="p">(</span><span class="n">cluster_iter</span><span class="p">,</span>
+                                      <span class="n">covs_df</span><span class="p">,</span>
+                                      <span class="n">formula</span><span class="p">,</span>
+                                      <span class="s">&quot;disease&quot;</span><span class="p">,</span>
+                                      <span class="n">crystal</span><span class="o">.</span><span class="n">zscore_cluster</span><span class="p">,</span>
+                                      <span class="n">n_cpu</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="k">print</span> <span class="n">cluster</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="example">
+<h1>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h1>
+<p>Here we run through an actual example using data in the repository. It would be simple
+to modify this script to run on any data.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">toolshed</span> <span class="kn">as</span> <span class="nn">ts</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">aclust</span> <span class="kn">import</span> <span class="n">mclust</span>
+<span class="kn">import</span> <span class="nn">crystal</span>
+
+<span class="n">covariates_file</span> <span class="o">=</span> <span class="s">&#39;../../../crystal/tests/covs.csv&#39;</span>
+<span class="n">methylation_file</span> <span class="o">=</span> <span class="s">&#39;../../../crystal/tests/meth.txt.gz&#39;</span>
+<span class="n">formula</span> <span class="o">=</span> <span class="s">&#39;methylation ~ age + gender&#39;</span>
+<span class="n">coef</span> <span class="o">=</span> <span class="s">&#39;gender&#39;</span>
+
+<span class="n">covs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">covariates_file</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">feature_gen</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">False</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">continue</span>
+        <span class="n">chrom</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;:&quot;</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">crystal</span><span class="o">.</span><span class="n">Feature</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">pos</span><span class="p">),</span> <span class="n">crystal</span><span class="o">.</span><span class="n">logit</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))))</span>
+
+
+<span class="n">cluster_iter</span> <span class="o">=</span> <span class="n">mclust</span><span class="p">(</span><span class="n">feature_gen</span><span class="p">(</span><span class="n">methylation_file</span><span class="p">),</span> <span class="n">max_dist</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">max_skip</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+
+<span class="n">fmt</span> <span class="o">=</span> <span class="s">&quot;{chrom}</span><span class="se">\t</span><span class="s">{start}</span><span class="se">\t</span><span class="s">{end}</span><span class="se">\t</span><span class="s">{p:.4g}</span><span class="se">\t</span><span class="s">{coef:.3f}</span><span class="se">\t</span><span class="s">{n_sites:d}&quot;</span>
+<span class="k">print</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">fmt2header</span><span class="p">(</span><span class="n">fmt</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">crystal</span><span class="o">.</span><span class="n">model_clusters</span><span class="p">(</span><span class="n">cluster_iter</span><span class="p">,</span>
+                                             <span class="n">covs</span><span class="p">,</span> <span class="n">formula</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span>
+                                            <span class="n">model_fn</span><span class="o">=</span><span class="n">crystal</span><span class="o">.</span><span class="n">zscore_cluster</span><span class="p">,</span>
+                                            <span class="n">n_cpu</span><span class="o">=</span><span class="mi">1</span><span class="p">)):</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">c</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">c</span><span class="p">[</span><span class="s">&#39;p&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">1e-3</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s">&#39;coef&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">0.2</span> <span class="ow">and</span> <span class="n">c</span><span class="p">[</span><span class="s">&#39;n_sites&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">crystal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">spaghetti_plot</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">covs</span><span class="p">)</span>
+        <span class="k">break</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href="./_static/ex-pipeline.py">Source code</a>, <a class="reference external" href="./_static/ex-pipeline.png">png</a>, <a class="reference external" href="./_static/ex-pipeline.hires.png">hires.png</a>, <a class="reference external" href="./_static/ex-pipeline.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="_images/ex-pipeline.png" src="_images/ex-pipeline.png" />
+</div>
+<p>Note that we have this looks like a site where males generally have a lower level of
+methylation than females. The text output looks like this:</p>
+<div class="highlight-python"><div class="highlight"><pre>chrom       start   end     coef    n_sites
+chrX        2733163 2745940 0.0002336       -0.514  3
+chrX        2746332 2746420 0.006272        0.257   2
+chrX        2746696 2746697 0.5873  -0.077  1
+chrX        2747135 2747136 0.5996  0.054   1
+chrX        2800456 2800457 0.6346  0.041   1
+chrX        2822260 2822261 0.03331 0.168   1
+chrX        2825269 2825270 0.0005556       -0.361  1
+chrX        2825361 2825362 0.05747 -0.168  1
+chrX        2825595 2825596 0.8458  -0.039  1
+chrX        2826828 2835913 0.001088        -0.254  2
+chrX        2836026 2836084 0.1921  0.148   2
+chrX        2836113 2836114 0.8866  -0.024  1
+chrX        2836299 2836300 0.001849        -0.288  1
+chrX        2843195 2843196 0.01105 -0.173  1
+chrX        2844680 2844681 0.07179 -0.272  1
+chrX        2846195 2846196 0.5473  -0.075  1
+chrX        2846892 2846893 0.13    -0.101  1
+chrX        2847353 2847503 0.008624        -0.437  3
+chrX        2847509 2847510 0.81    0.039   1
+chrX        2847548 2852845 0.0003622       -0.490  6
+</pre></div>
+</div>
+</div>
+<div class="section" id="development">
+<h1>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h1>
+<p><cite>crystal</cite> is developed at <a class="reference external" href="https://github.com/brentp/crystal/">https://github.com/brentp/crystal</a>.</p>
+<p>It includes example data in the <cite>crystal/tests</cite> directory.</p>
+<p>It has decent test coverage and tests can be run with <cite>./test.sh</cite> from the root of the project
+directory.</p>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2014, Brent S. Pedersen.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

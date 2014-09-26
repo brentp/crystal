@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>crystal.evaluate &mdash; crystal 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/bootstrap-3.1.0/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/bootstrap-3.1.0/css/bootstrap-theme.min.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-3.1.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+    <link rel="top" title="crystal 0.0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          crystal</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.0.1</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            <li class="divider-vertical"></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../crystal.html">crystal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plot.html">plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../evaluate.html">evaluate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../regions.html">regions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../simulate.html">simulate</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      
+  <h1>Source code for crystal.evaluate</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">.crystal</span> <span class="kn">import</span> <span class="n">model_clusters</span>
+<span class="kn">import</span> <span class="nn">toolshed</span> <span class="kn">as</span> <span class="nn">ts</span>
+<span class="kn">import</span> <span class="nn">itertools</span> <span class="kn">as</span> <span class="nn">it</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="kn">as</span> <span class="nn">sns</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">roc_curve</span><span class="p">,</span> <span class="n">auc</span>
+
+
+<span class="k">def</span> <span class="nf">cluster_bediter</span><span class="p">(</span><span class="n">modeled_clusters</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">modeled_clusters</span><span class="p">:</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">m</span><span class="p">[</span><span class="s">&#39;cluster&#39;</span><span class="p">]</span>
+        <span class="k">yield</span> <span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">chrom</span><span class="p">,</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">c</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">position</span><span class="p">,</span> <span class="n">m</span><span class="p">[</span><span class="s">&#39;p&#39;</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+
+<div class="viewcode-block" id="evaluate_modeled_regions"><a class="viewcode-back" href="../../evaluate.html#crystal.evaluate.evaluate_modeled_regions">[docs]</a><span class="k">def</span> <span class="nf">evaluate_modeled_regions</span><span class="p">(</span><span class="n">bed_iter</span><span class="p">,</span> <span class="n">regions</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">plot_kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Evaluate the accuracy of a method (`model_fn`) by comparing how many</span>
+<span class="sd">    fall into a set of &quot;truth&quot; regions vs. outside.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    bed_iter : iterable</span>
+<span class="sd">        iterable with each element of (chrom, start, end, p-value, n_sites)</span>
+<span class="sd">        can be regions or features.</span>
+
+<span class="sd">    regions : file</span>
+<span class="sd">        BED file of regions.</span>
+
+<span class="sd">    size : int</span>
+<span class="sd">        which size region to test. default (None) is all sizes.</span>
+
+<span class="sd">    label : str</span>
+<span class="sd">        label for plot legend</span>
+
+<span class="sd">    ax : axis</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># TODO: implement size</span>
+
+    <span class="n">true_regions</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">false_regions</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">toks</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">regions</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">False</span><span class="p">)):</span>
+        <span class="c"># see if it&#39;s a header.</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">toks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">toks</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span> <span class="k">continue</span>
+        <span class="c"># seen used keep track of the regions we&#39;ve found</span>
+        <span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="n">toks</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">toks</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">toks</span><span class="p">[</span><span class="mi">3</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;tru&quot;</span><span class="p">:</span>
+            <span class="n">true_regions</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">false_regions</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">))</span>
+
+
+    <span class="n">seen_true</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
+    <span class="n">seen_false</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">is_in</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">regions</span><span class="p">,</span> <span class="n">check_regions</span><span class="p">):</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">regions</span><span class="p">[</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">r</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">b</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">s</span> <span class="ow">and</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c"># keep track of the regions that have been seen</span>
+                <span class="n">check_regions</span><span class="p">[</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">s</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+                <span class="n">found</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">found</span>
+
+    <span class="n">no_false</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">false_regions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+
+    <span class="n">truths</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ps</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bed_iter</span><span class="p">:</span>
+        <span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">n_sites</span> <span class="o">=</span> <span class="n">b</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">int</span><span class="p">)</span>
+        <span class="n">n_true</span> <span class="o">=</span> <span class="n">is_in</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">true_regions</span><span class="p">,</span> <span class="n">seen_true</span><span class="p">)</span>
+        <span class="c"># also keep track of which false regions have been seen, but don&#39;t use</span>
+        <span class="c"># the return value</span>
+        <span class="k">if</span> <span class="n">no_false</span><span class="p">:</span>
+            <span class="n">n_false</span> <span class="o">=</span> <span class="n">n_sites</span> <span class="o">-</span> <span class="n">n_true</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">n_false</span> <span class="o">=</span> <span class="n">is_in</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">false_regions</span><span class="p">,</span> <span class="n">seen_false</span><span class="p">)</span>
+
+        <span class="c"># can&#39;t have this assertion because other tools find things outside the</span>
+        <span class="c"># given data.</span>
+        <span class="c">#assert n_true + n_false == n_sites, (n_true, n_false, b)</span>
+
+        <span class="c"># here, we multiply because each region can overlap multiple sites</span>
+        <span class="n">truths</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_true</span><span class="p">)</span>
+        <span class="n">truths</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_false</span><span class="p">)</span>
+        <span class="n">ps</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">p</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_true</span> <span class="o">+</span> <span class="n">n_false</span><span class="p">))</span>
+
+
+    <span class="c"># now we need to add in the missed trues and missed falses.</span>
+    <span class="c">#&quot;&quot;&quot;</span>
+    <span class="n">one</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="mf">1e-16</span>
+    <span class="k">for</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="n">true_regions</span><span class="p">:</span>
+        <span class="n">regs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">true_regions</span><span class="p">[</span><span class="n">chrom</span><span class="p">])</span>
+        <span class="n">seen</span> <span class="o">=</span> <span class="n">seen_true</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">seen</span> <span class="o">-</span> <span class="n">regs</span>
+        <span class="n">missed</span> <span class="o">=</span> <span class="n">regs</span> <span class="o">-</span> <span class="n">seen</span>
+        <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">missed</span><span class="p">:</span>
+            <span class="c"># add a p-value of 1 for missed regions</span>
+            <span class="c"># do not multiply by length because we have a row for each site in each</span>
+            <span class="c"># region already.</span>
+            <span class="n">ps</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">one</span><span class="p">])</span>
+            <span class="n">truths</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="c"># blah code duplication.</span>
+    <span class="k">for</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="n">false_regions</span><span class="p">:</span>
+        <span class="n">regs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">false_regions</span><span class="p">[</span><span class="n">chrom</span><span class="p">])</span>
+        <span class="n">seen</span> <span class="o">=</span> <span class="n">seen_false</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">seen</span> <span class="o">-</span> <span class="n">regs</span>
+        <span class="n">missed</span> <span class="o">=</span> <span class="n">regs</span> <span class="o">-</span> <span class="n">seen</span>
+        <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">missed</span><span class="p">:</span>
+            <span class="n">ps</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">one</span><span class="p">])</span>
+            <span class="n">truths</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+    <span class="c">#&quot;&quot;&quot;</span>
+    <span class="k">print</span> <span class="nb">len</span><span class="p">(</span><span class="n">truths</span><span class="p">)</span>
+    <span class="n">truths</span><span class="p">,</span> <span class="n">ps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">truths</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ps</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">truths</span><span class="p">,</span> <span class="n">ps</span>
+
+    <span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">roc_curve</span><span class="p">(</span><span class="n">truths</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ps</span><span class="p">)],</span> <span class="mf">1.</span> <span class="o">-</span> <span class="n">ps</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ps</span><span class="p">)])</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;AUC: </span><span class="si">%.4f</span><span class="s"> | &quot;</span> <span class="o">%</span> <span class="n">auc</span><span class="p">(</span><span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">))</span> <span class="o">+</span> <span class="n">label</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fpr</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">tpr</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="o">**</span><span class="n">plot_kwargs</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s">&#39;1 - specificity&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">&#39;sensitivity&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">truths</span><span class="p">,</span> <span class="n">ps</span>
+</div>
+<div class="viewcode-block" id="plot_roc"><a class="viewcode-back" href="../../evaluate.html#crystal.evaluate.plot_roc">[docs]</a><span class="k">def</span> <span class="nf">plot_roc</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot ROC for a given result.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    ax: matplotlib axis</span>
+
+<span class="sd">    r: dict</span>
+<span class="sd">        return value from :func:`~evaluate_method`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">t</span><span class="p">,</span> <span class="n">f</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s">&#39;true-ps&#39;</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s">&#39;null-ps&#39;</span><span class="p">]</span>
+    <span class="n">t</span><span class="p">,</span> <span class="n">f</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">t</span><span class="p">)],</span> <span class="n">f</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">f</span><span class="p">)]</span>
+    <span class="n">truth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+    <span class="n">ps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">t</span><span class="p">,</span> <span class="n">f</span><span class="p">))</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ps</span>
+    <span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">roc_curve</span><span class="p">(</span><span class="n">truth</span><span class="p">,</span> <span class="n">vals</span><span class="p">)</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;AUC: </span><span class="si">%.4f</span><span class="s"> | &quot;</span> <span class="o">%</span> <span class="n">auc</span><span class="p">(</span><span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">))</span> <span class="o">+</span> <span class="n">r</span><span class="p">[</span><span class="s">&#39;label&#39;</span><span class="p">]</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fpr</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">tpr</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="o">**</span><span class="n">plot_kwargs</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s">&#39;1 - specificity&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">&#39;sensitivity&#39;</span><span class="p">)</span>
+</div>
+<span class="k">def</span> <span class="nf">plot_pvalue_grid</span><span class="p">(</span><span class="n">results</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+    <span class="c"># http://web.stanford.edu/~mwaskom/software/seaborn/tutorial/axis_grids.html</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">r</span><span class="p">[</span><span class="s">&#39;null-ps&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;label&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">[</span><span class="s">&#39;method&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">])</span>
+
+    <span class="n">g</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">PairGrid</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">diag_sharey</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="c">#, hue=&#39;truth&#39;)</span>
+
+    <span class="c">#g.map_diag(plt.hist)</span>
+    <span class="n">g</span><span class="o">.</span><span class="n">map_offdiag</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                                                            <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">g</span>
+
+
+<div class="viewcode-block" id="plot_times"><a class="viewcode-back" href="../../evaluate.html#crystal.evaluate.plot_times">[docs]</a><span class="k">def</span> <span class="nf">plot_times</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot the times taken for each result in results</span>
+<span class="sd">    from :func:`evalute_method`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    ax: matplotlib axis</span>
+
+<span class="sd">    results: list of list of dict</span>
+<span class="sd">        list of return values from :func:`~model_clusters`</span>
+
+<span class="sd">    colors: list</span>
+<span class="sd">        list of colors for matplotlib</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">colors</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">color_palette</span><span class="p">(</span><span class="s">&quot;Set1&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">))</span>
+
+    <span class="n">tmax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="s">&#39;time&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">m</span><span class="p">)</span> <span class="o">/</span> <span class="mf">60.</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">results</span><span class="p">):</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="s">&#39;time&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">m</span><span class="p">)</span> <span class="o">/</span> <span class="mf">60.</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mf">0.08</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">t</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.85</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">label</span><span class="o">=</span><span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39; - </span><span class="si">%.1f</span><span class="s"> min.&#39;</span> <span class="o">%</span> <span class="n">t</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s">&quot;best&quot;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">([</span><span class="s">&quot;</span><span class="si">%i</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tmax</span><span class="p">)])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s">&#39;CPU time (minutes)&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([])</span>
+</div>
+<div class="viewcode-block" id="write_modeled_regions"><a class="viewcode-back" href="../../evaluate.html#crystal.evaluate.write_modeled_regions">[docs]</a><span class="k">def</span> <span class="nf">write_modeled_regions</span><span class="p">(</span><span class="n">modeled_clusters</span><span class="p">,</span> <span class="n">p_cutoff</span><span class="p">,</span> <span class="n">out_fh</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write a region bed file suitable for use in :func:`~evaluate_modeled_regions`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    modeled_clusters : list</span>
+<span class="sd">        output from :func:`~model_clusters`</span>
+
+<span class="sd">    p_cutoff : float</span>
+<span class="sd">        values &lt; this are set as true</span>
+
+<span class="sd">    out_fh : filehandle</span>
+<span class="sd">        where to write the data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fmt</span> <span class="o">=</span> <span class="s">&quot;{chrom}</span><span class="se">\t</span><span class="s">{start}</span><span class="se">\t</span><span class="s">{end}</span><span class="se">\t</span><span class="s">{truth}</span><span class="se">\t</span><span class="s">{size}</span><span class="se">\n</span><span class="s">&quot;</span>
+    <span class="n">out_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">fmt2header</span><span class="p">(</span><span class="n">fmt</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">mc</span> <span class="ow">in</span> <span class="n">modeled_clusters</span><span class="p">:</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">mc</span><span class="p">[</span><span class="s">&#39;cluster&#39;</span><span class="p">]</span>
+        <span class="n">truth</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;false&#39;</span><span class="p">,</span> <span class="s">&#39;true&#39;</span><span class="p">][</span><span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s">&#39;p&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">p_cutoff</span><span class="p">)],</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
+            <span class="n">out_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">chrom</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">position</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+                         <span class="n">end</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">position</span><span class="p">,</span>
+                         <span class="n">truth</span><span class="o">=</span><span class="n">truth</span><span class="p">,</span>
+                         <span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">))))</span></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2014, Brent S. Pedersen.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
