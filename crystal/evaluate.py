@@ -217,7 +217,7 @@ def write_modeled_regions(modeled_clusters, p_cutoff, out_fh):
     out_fh.write(ts.fmt2header(fmt))
     for mc in modeled_clusters:
         c = mc['cluster']
-        truth = ['false', 'true'][int(c['p'] < p_cutoff)],
+        truth = ['false', 'true'][int(mc['p'] < p_cutoff)],
         for f in c:
             out_fh.write(fmt.format(**dict(chrom=f.chrom, start=f.position - 1,
                          end=f.position,
