@@ -14,7 +14,7 @@ def cluster_bediter(modeled_clusters):
         c = m['cluster']
         yield (c[0].chrom, c[0].position - 1, c[-1].position, m['p'], len(c))
 
-def evaluate_modeled_regions(bed_iter, regions, size=None, label='', ax=None, **plot_kwargs):
+def evaluate(bed_iter, regions, size=None, label='', ax=None, **plot_kwargs):
     """
     Evaluate the accuracy of a method (`model_fn`) by comparing how many
     fall into a set of "truth" regions vs. outside.
@@ -116,13 +116,13 @@ def evaluate_modeled_regions(bed_iter, regions, size=None, label='', ax=None, **
             ps.extend([one])
             truths.extend([0])
     #"""
-    print len(truths)
     truths, ps = np.array(truths), np.array(ps)
     if ax is None:
         return truths, ps
 
     fpr, tpr, _ = roc_curve(truths[~np.isnan(ps)], 1. - ps[~np.isnan(ps)])
     label = ("AUC: %.4f | " % auc(fpr, tpr)) + label
+    print label, len(truths)
     ax.plot(fpr[1:], tpr[1:], label=label, **plot_kwargs)
     ax.set_xlabel('1 - specificity')
     ax.set_ylabel('sensitivity')
