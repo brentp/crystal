@@ -1,5 +1,6 @@
 toolshed>=0.4
 aclust
+interlap
 cython>=0.20
 numpy
 scipy

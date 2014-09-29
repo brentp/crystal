@@ -1,6 +1,7 @@
 from __future__ import print_function
 from collections import defaultdict
 import toolshed as ts
+from interlap import InterLap
 import sys
 
 def region_cluster_gen(features, regions_bed):
@@ -29,7 +30,7 @@ def region_cluster_gen(features, regions_bed):
     [Feature(chr2:999)]
     """
 
-    regions = defaultdict(list)
+    regions = defaultdict(InterLap)
     seen = set()
 
     for i, toks in enumerate(ts.reader(regions_bed, header=False)):
@@ -38,7 +39,7 @@ def region_cluster_gen(features, regions_bed):
         # seen used keep track of the regions we've found
         chrom, start, end = toks[0], int(toks[1]), int(toks[2])
         seen.add((chrom, start, end))
-        regions[chrom].append((start, end, (chrom, start, end)))
+        regions[chrom].add((start, end, (chrom, start, end)))
     regions = dict(regions)
     # TODO: handle overlapping regions
 
@@ -53,7 +54,7 @@ def region_cluster_gen(features, regions_bed):
             continue
 
         # loop over all regions of overlap and add the feature
-        for reg in (rid for (s, e, rid) in cr if s <= f.position <= e):
+        for s, e, reg in cr.find((f.position, f.position)):
             if not reg in dmrs: dmrs[reg] = []
             dmrs[reg].append(f)
 

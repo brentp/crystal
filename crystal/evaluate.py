@@ -1,5 +1,6 @@
 from collections import defaultdict
 from .crystal import model_clusters
+from interlap import InterLap
 import toolshed as ts
 import itertools as it
 import seaborn as sns
@@ -40,31 +41,27 @@ def evaluate(bed_iter, regions, size=None, label='', ax=None, **plot_kwargs):
     """
     # TODO: implement size
 
-    true_regions = defaultdict(list)
-    false_regions = defaultdict(list)
+    true_regions = defaultdict(InterLap)
+    false_regions = defaultdict(InterLap)
     for i, toks in enumerate(ts.reader(regions, header=False)):
         # see if it's a header.
         if i == 0 and not (toks[1] + toks[2]).isdigit(): continue
         # seen used keep track of the regions we've found
         chrom, start, end = toks[0], int(toks[1]), int(toks[2])
         if len(toks) <= 3 or toks[3][:3] == "tru":
-            true_regions[chrom].append((start, end))
+            true_regions[chrom].add((start, end))
         else:
-            false_regions[chrom].append((start, end))
+            false_regions[chrom].add((start, end))
 
 
     seen_true = defaultdict(set)
     seen_false = defaultdict(set)
 
     def is_in(b, regions, check_regions):
-        r = regions[b[0]]
-        found = 0
-        for s, e in r:
-            if b[2] >= s and b[1] <= e:
-                # keep track of the regions that have been seen
-                check_regions[b[0]].add((s, e))
-                found += 1
-        return found
+        found = list(regions[b[0]].find((b[1], b[2])))
+        for s, e in found:
+            check_regions[b[0]].add((s, e))
+        return len(found)
 
     no_false = len(false_regions) == 0
 
@@ -80,10 +77,9 @@ def evaluate(bed_iter, regions, size=None, label='', ax=None, **plot_kwargs):
             n_false = n_sites - n_true
         else:
             n_false = is_in(b, false_regions, seen_false)
-
-        # can't have this assertion because other tools find things outside the
-        # given data.
-        #assert n_true + n_false == n_sites, (n_true, n_false, b)
+            # can't have this assertion because other tools find things outside the
+            # given data.
+            #assert n_true + n_false == n_sites, (n_true, n_false, b)
 
         # here, we multiply because each region can overlap multiple sites
         truths.extend([1] * n_true)
@@ -217,7 +213,7 @@ def write_modeled_regions(modeled_clusters, p_cutoff, out_fh):
     out_fh.write(ts.fmt2header(fmt))
     for mc in modeled_clusters:
         c = mc['cluster']
-        truth = ['false', 'true'][int(mc['p'] < p_cutoff)],
+        truth = ['false', 'true'][int(mc['p'] < p_cutoff)]
         for f in c:
             out_fh.write(fmt.format(**dict(chrom=f.chrom, start=f.position - 1,
                          end=f.position,
