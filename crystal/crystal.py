@@ -158,7 +158,7 @@ def gee_cluster(formula, cluster, covs, coef, cov_struct=Exchangeable(),
                                cov_struct=cov_struct, family=family,
                                offset=np.log(cov_rep['counts'])).fit()
     else:
-        raise Exception("Only guassian and poisson are supported")
+        raise Exception("Only gaussian and poisson are supported")
 
     return get_ptc(res, coef)
 
@@ -219,9 +219,9 @@ def stouffer_liptak_combine(pvals, sigma):
     Cp = qvals.sum() / np.sqrt(len(qvals))
     return norm.sf(Cp)
 
-def zscore_combine(pvals, sigma):
+def zscore_combine(pvals, sigma, mid=np.mean):
     if np.all(np.isnan(sigma)): return np.nan
-    z, L = np.mean(norm.isf(pvals)), len(pvals)
+    z, L = mid(norm.isf(pvals)), len(pvals)
     sz = 1.0 / L * np.sqrt(L + 2 * np.tril(sigma, k=-1).sum())
     return norm.sf(z / sz)
 
@@ -258,13 +258,13 @@ def liptak_cluster(formula, cluster, covs, coef, robust=False):
     r.pop('corr')
     return r
 
-def zscore_cluster(formula, cluster, covs, coef, robust=False):
+def zscore_cluster(formula, cluster, covs, coef, robust=False, mid=np.mean):
     """Model clusters by fitting model at each site and then
     combining using the z-score method. Same signature as
     :func:`~gee_cluster`"""
     methylations = np.array([f.values for f in cluster])
     r = _combine_cluster(formula, methylations, covs, coef, robust=robust)
-    r['p'] = zscore_combine(r['p'], r.pop('corr'))
+    r['p'] = zscore_combine(r['p'], r.pop('corr'), mid=mid)
     r['t'], r['coef'] = r['t'].mean(), r['coef'].mean()
     return r
 
