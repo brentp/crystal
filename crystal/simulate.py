@@ -28,7 +28,9 @@ def rr_cluster(cluster, covs, formula="methylation ~ age"):
     else:
         for f in cluster:
             covs['methylation'] = f.values
-            f.values[:] = ols(formula, covs).fit().resid
+            fit = ols(formula, covs).fit()
+            f.values[:] = fit.resid
+            f.ovalues = fit.fittedvalues
     return cluster
 
 
@@ -62,9 +64,11 @@ def simulate_cluster(cluster, w=0, class_order=None,
         attrs = []
 
     # copy since we modify the data in-place.
+    has_fitted = False
     if get_reduced_residuals is None:
         cluster = [deepcopy(f) for f in cluster]
     else:
+        has_fitted = True
         cluster = get_reduced_residuals(cluster, *grr_args)
 
     # make this one faster since we don't need to keep track of high/low
@@ -75,6 +79,9 @@ def simulate_cluster(cluster, w=0, class_order=None,
             feature.values = feature.values[idxs]
             for attr in attrs:
                 setattr(feature, attr, getattr(feature, attr)[idxs])
+            # add the shuffled residuals to the fitted values
+            if has_fitted:
+                feature.values += feature.ovalues
         return cluster
 
 
@@ -128,6 +135,11 @@ def simulate_cluster(cluster, w=0, class_order=None,
         tmpl = np.array(cluster[j].values[idx_order][l_idxs])
         cluster[j].values[class_order == 0] = tmpl
         cluster[j].values[class_order == 1] = tmph
+        # add the shuffled residuals to the fitted values
+        # actually add the fitted values back on the the shuffled residuals
+        if has_fitted:
+            cluster[j].values += cluster[j].ovalues
+
         for attr in attrs:
             vals = getattr(cluster[j], attr)[idx_order]
             hi_vals = np.array(vals[idx_order][h_idxs])
@@ -187,6 +199,7 @@ def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None,
 
     """
     np.random.seed(seed)
+    from math import log
     assert isinstance(clust_list, list), ("need a list due to multiple \
             iterations")
 
@@ -222,7 +235,9 @@ def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None,
         # than we have in sizes
         if l in sim_idxs:
             s = seen[l]
-            w = int(s in sim_idxs[l])
+            # denominator gives larger DMRs have a smaller per-probe effect.
+            w = int(s in sim_idxs[l]) / log(l + 1)
+            #w = int(s in sim_idxs[l]) * 2 / (1 + log(i))
             seen[l] += 1
 
         truth = l in sim_idxs and s in sim_idxs[l]
@@ -232,7 +247,8 @@ def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None,
                                        end=f.position,
                                        truth="true" if truth else "false",
                                        size=len(c)))
-        yield simulate_cluster(c, w, class_order, get_reduced_residuals)
+        yield simulate_cluster(c, w, class_order, get_reduced_residuals,
+                get_reduced_residuals_args)
 
     region_fh.flush()
 
