@@ -8,9 +8,14 @@ from . import CountFeature
 from statsmodels.genmod.families import Poisson
 
 SIZES = dict.fromkeys([1, 2] + range(4, 12, 2), 100)
-SIZES[2] = SIZES[1] = 200
+SIZES[2] = SIZES[1] = 400
+SIZES[3] = 200
+SIZES[7] = 80
+SIZES[8] = 60
+SIZES[9] = 40
+SIZES[10] = 10
 
-def rr_cluster(cluster, covs, formula="methylation ~ age"):
+def rr_cluster(cluster, covs, formula):
     """Set cluster values to reduced-residuals."""
     cluster = deepcopy(cluster)
     from statsmodels.formula.api import ols, glm
@@ -76,7 +81,7 @@ def simulate_cluster(cluster, w=0, class_order=None,
         idxs = np.arange(len(cluster[0].values))
         np.random.shuffle(idxs)
         for feature in cluster:
-            feature.values = feature.values[idxs]
+            feature.values[:] = feature.values[idxs]
             for attr in attrs:
                 setattr(feature, attr, getattr(feature, attr)[idxs])
             # add the shuffled residuals to the fitted values
@@ -101,7 +106,6 @@ def simulate_cluster(cluster, w=0, class_order=None,
     assert nL + nH == N
 
     n_probes = len(cluster)
-    new_data = np.zeros((n_probes, N))
 
     # choose a random probe from the set.
     # the values across the cluster will be determined
@@ -119,15 +123,18 @@ def simulate_cluster(cluster, w=0, class_order=None,
     ords = np.arange(1, N + 1) / (N + 1.0)
     ords = (1.0 - ords)**w
     h_idxs = choice(idxs, replace=False, p=ords/ords.sum(), size=nH)
+    h_idxs.sort()
 
     # LO
     l_idxs = np.setdiff1d(idxs, h_idxs, assume_unique=True)
     l_idxs.sort()
 
-    ords = np.arange(1, nL + 1.) / (nL + 1.0)
-    assert ords.shape == l_idxs.shape
-    ords = (ords)**w
-    l_idxs = choice(l_idxs, replace=False, p=ords/ords.sum(), size=nL)
+    if len(l_idxs) + len(h_idxs) != N:
+        # only need to do this if there's a choice.
+        l_ords = np.arange(1, nL + 1.) / (nL + 1.0)
+        assert l_ords.shape == l_idxs.shape
+        l_ords = (l_ords)**w
+        l_idxs = choice(l_idxs, replace=False, p=l_ords/l_ords.sum(), size=nL)
 
     assert len(np.intersect1d(h_idxs, l_idxs)) == 0
     for j in range(n_probes):
@@ -173,7 +180,7 @@ def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None,
         others are randomized.
 
     classes : np.array
-        same length as cluster[*].values indicating
+        same length as cluster[i].values indicating
         which group each sample belongs to.
 
     seed: int
@@ -223,11 +230,12 @@ def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None,
         # get the indexes of the clusters we want
         sim_idxs[size] = frozenset(np.random.choice(idxs, size=min(n,
                                                     len(idxs)), replace=False))
-
+    del clusts
     fmt = "{chrom}\t{start}\t{end}\t{truth}\t{size}\n"
     region_fh.write(ts.fmt2header(fmt))
 
     seen = defaultdict(int)
+    changed = defaultdict(int)
     for c in clust_list:
         l = len(c)
         w = 0
@@ -235,10 +243,12 @@ def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None,
         # than we have in sizes
         if l in sim_idxs:
             s = seen[l]
-            # denominator gives larger DMRs have a smaller per-probe effect.
-            w = int(s in sim_idxs[l]) / log(l + 1)
+            # denominator sets larger DMRs to have a smaller per-probe effect.
+            #w = int(s in sim_idxs[l]) / log(l + 1)
             #w = int(s in sim_idxs[l]) * 2 / (1 + log(i))
+            w = 2 * int(s in sim_idxs[l])
             seen[l] += 1
+            if w > 0: changed[l] += 1
 
         truth = l in sim_idxs and s in sim_idxs[l]
         for f in c:
@@ -249,6 +259,7 @@ def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None,
                                        size=len(c)))
         yield simulate_cluster(c, w, class_order, get_reduced_residuals,
                 get_reduced_residuals_args)
-
+    sys.stderr.write("changed:" + str(dict(changed)) + "\n")
+    sys.stderr.write("total:" + str(dict(seen)) + "\n")
     region_fh.flush()
 
