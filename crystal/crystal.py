@@ -228,6 +228,7 @@ def zscore_combine(pvals, sigma, mid=np.mean):
 def _combine_cluster(formula, methylations, covs, coef, robust=False,
         _corr=True):
     """function called by z-score and liptak to get pvalues"""
+    assert not 'methylation' in covs
     res = [(RLM if robust else OLS).from_formula(formula, covs).fit()
             for methylation in methylations]
     idx = [i for i, par in enumerate(res[0].model.exog_names)
@@ -403,6 +404,10 @@ def model_clusters(clust_iter, clin_df, formula, coef, model_fn=gee_cluster,
     kwargs: dict
         arguments sent to `model_fn`
     """
+    try:
+        clin_df.pop('methylation')
+    except KeyError:
+        pass
     for r in ts.pmap(wrapper, ((model_fn, formula, cluster, clin_df, coef,
                                 kwargs) for cluster in clust_iter), n_cpu,
                                 p=pool):
