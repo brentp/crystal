@@ -1,4 +1,5 @@
 from .crystal import *
+from .betareg import BetaReg
 from . import evaluate
 from . import utils
 from . import plot

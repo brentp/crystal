@@ -5,6 +5,7 @@ Model clustered, correlated data.
 import sys
 import toolshed as ts
 from itertools import izip
+import copy
 import time
 import re
 
@@ -17,7 +18,7 @@ from scipy.stats import norm
 from numpy.linalg import cholesky as chol, lstsq
 
 from statsmodels.api import GEE, GLM, MixedLM, RLM, GLS, OLS, GLSAR
-from statsmodels.genmod.dependence_structures import Exchangeable, Independence
+from statsmodels.genmod.cov_struct import Exchangeable, Independence
 from statsmodels.genmod.families import (Gaussian, Poisson,
         NegativeBinomial as NB)
 from statsmodels.discrete.discrete_model import NegativeBinomial
@@ -375,6 +376,7 @@ def wrapper(model_fn, formula, cluster, clin_df, coef, kwargs=None):
 
 def model_clusters(clust_iter, clin_df, formula, coef, model_fn=gee_cluster,
         pool=None,
+        transform=None,
         n_cpu=None,
         **kwargs):
     """For each cluster in an iterable, evaluate the chosen model and
@@ -401,6 +403,9 @@ def model_clusters(clust_iter, clin_df, formula, coef, model_fn=gee_cluster,
         fn(formula, methylation, covs, coef, kwargs)
         that returns a dictionary with at least p-value and coef
 
+    transform: fn
+        A function that modifies the data before modeling.
+
     n_cpu : int
 
     kwargs: dict
@@ -410,11 +415,21 @@ def model_clusters(clust_iter, clin_df, formula, coef, model_fn=gee_cluster,
         clin_df.pop('methylation')
     except KeyError:
         pass
-    for r in ts.pmap(wrapper, ((model_fn, formula, cluster, clin_df, coef,
+    if transform:
+        tf = lambda cluster: cluster_transform(cluster, transform)
+
+    for r in ts.pmap(wrapper, ((model_fn, formula,
+                                tf(cluster) if transform else cluster,
+                                clin_df, coef,
                                 kwargs) for cluster in clust_iter), n_cpu,
                                 p=pool):
         yield r
 
+def cluster_transform(cluster, method):
+    cluster = copy.deepcopy(cluster)
+    for f in cluster:
+        f.values = method(f.values)
+    return cluster
 
 class Feature(object):
 
