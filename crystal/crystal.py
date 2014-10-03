@@ -68,7 +68,7 @@ def get_ptc(fit, coef):
 
 from statsmodels.tools.sm_exceptions import PerfectSeparationError
 
-def one_cluster(formula, feature, covs, coef, robust=False,
+def one_cluster(formula, feature, covs, coef, method=OLS,
                 _pat=re.compile("\+\s*CpG")):
     """used when we have a "cluster" with 1 probe."""
     c = covs.copy()
@@ -86,7 +86,7 @@ def one_cluster(formula, feature, covs, coef, robust=False,
             return dict(p=np.nan, t=np.nan, coef=np.nan, covar=coef)
     else:
         c['methylation'] = feature.values
-        res = (RLM if robust else OLS).from_formula(formula, data=c).fit()
+        res = method.from_formula(formula, data=c).fit()
         return get_ptc(res, coef)
 
 
@@ -225,11 +225,12 @@ def zscore_combine(pvals, sigma, mid=np.mean):
     sz = 1.0 / L * np.sqrt(L + 2 * np.tril(sigma, k=-1).sum())
     return norm.sf(z / sz)
 
-def _combine_cluster(formula, methylations, covs, coef, robust=False,
-        _corr=True):
+def _combine_cluster(formula, methylations, covs, coef, method,
+        _corr=True, method_kwargs=None):
     """function called by z-score and liptak to get pvalues"""
+    if method_kwargs is None: method_kwargs = {}
     assert not 'methylation' in covs
-    res = [(RLM if robust else OLS).from_formula(formula, covs).fit()
+    res = [method.from_formula(formula, covs, **method_kwargs).fit()
             for methylation in methylations]
     idx = [i for i, par in enumerate(res[0].model.exog_names)
                    if par.startswith(coef)][0]
@@ -248,23 +249,23 @@ def _combine_cluster(formula, methylations, covs, coef, robust=False,
 def bayes_cluster():
     pass
 
-def liptak_cluster(formula, cluster, covs, coef, robust=False):
+def liptak_cluster(formula, cluster, covs, coef, method=OLS):
     """Model clusters by fitting model at each site and then
     combining using :func:`~stouffer_liptak`. same signature as
     :func:`~gee_cluster`"""
     methylations = np.array([f.values for f in cluster])
-    r = _combine_cluster(formula, methylations, covs, coef, robust=robust)
+    r = _combine_cluster(formula, methylations, covs, coef, method=method)
     r['p'] = stouffer_liptak_combine(r['p'], r['corr'])
     r['t'], r['coef'] = r['t'].mean(), r['coef'].mean()
     r.pop('corr')
     return r
 
-def zscore_cluster(formula, cluster, covs, coef, robust=False, mid=np.mean):
+def zscore_cluster(formula, cluster, covs, coef, method=OLS, method_kwargs=None, mid=np.mean):
     """Model clusters by fitting model at each site and then
     combining using the z-score method. Same signature as
     :func:`~gee_cluster`"""
     methylations = np.array([f.values for f in cluster])
-    r = _combine_cluster(formula, methylations, covs, coef, robust=robust)
+    r = _combine_cluster(formula, methylations, covs, coef, method=method)
     r['p'] = zscore_combine(r['p'], r.pop('corr'), mid=mid)
     r['t'], r['coef'] = r['t'].mean(), r['coef'].mean()
     return r
@@ -296,7 +297,7 @@ def _cluster_coefs(formula, y, covs, coef):
     return coefs
 
 def bump_cluster(formula, cluster, covs, coef, nsims=20000,
-        value_fn=coef_sum, robust=False):
+        value_fn=coef_sum, method=OLS):
     """Model clusters by fitting model at each site and then comparing some
     metric to the same metric from models fit to simulated data.
     Uses sequential Monte-carlo to stop once we know the simulated p-value is
@@ -305,7 +306,7 @@ def bump_cluster(formula, cluster, covs, coef, nsims=20000,
     Same signature as :func:`~gee_cluster`
     """
     methylations = np.array([f.values for f in cluster])
-    orig = _combine_cluster(formula, methylations, covs, coef, robust=robust)
+    orig = _combine_cluster(formula, methylations, covs, coef, method=method)
     obs_coef = value_fn(orig)
 
     reduced_residuals, reduced_fitted = [], []
@@ -316,7 +317,7 @@ def bump_cluster(formula, cluster, covs, coef, nsims=20000,
         idxs = [par for par in X.columns if par.startswith(coef)]
         assert len(idxs) == 1, ('too many coefficents like', coef)
         X.pop(idxs[0])
-        fitr = (RLM if robust else OLS)(y, X).fit()
+        fitr = method(y, X).fit()
 
         reduced_residuals.append(np.array(fitr.resid))
         reduced_fitted.append(np.array(fitr.fittedvalues))
