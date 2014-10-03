@@ -361,7 +361,8 @@ def wrapper(model_fn, formula, cluster, clin_df, coef, kwargs=None):
                 clin_df,
                 coef, **kwargs)
     else:
-        r = one_cluster(formula, cluster[0], clin_df, coef)
+        r = one_cluster(formula, cluster[0], clin_df, coef,
+                method=kwargs.get('method', OLS))
     r['time'] = time.time() - t
     r['chrom'] = cluster[0].chrom
     r['start'] = cluster[0].position - 1
