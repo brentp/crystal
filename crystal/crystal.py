@@ -220,15 +220,34 @@ def _combine_cluster(formula, methylations, covs, coef, method,
         res['corr'] = corr(methylations[~np.isnan(pvals)])
     return res
 
-def bayes_cluster():
-    pass
+def beta_count_cluster(formula, cluster, covs, coef, mid=np.mean):
+    methylations = np.array([f.values for f in cluster])
+    counts = np.array([f.counts for f in cluster])
+    res = [Beta.from_formula(formula, covs,
+            Z=np.column_stack(np.ones_like(count), count)).fit()
+            for count, methylation in zip(counts, methylations)]
+    idx = [i for i, par in enumerate(res[0].model.exog_names)
+                   if par.startswith(coef)][0]
+    pvals = np.array([r.pvalues[idx] for r in res], dtype=np.float64)
+    pvals[pvals == 1] = 1.0 - 9e-16
+    res = dict(t=np.array([r.tvalues[idx] for r in res]),
+                coef=np.array([r.params[idx] for r in res]),
+                covar=res[0].model.exog_names[idx],
+                p=pvals[~np.isnan(pvals)])
+    del r
+    cor = corr(methylations[~np.isnan(pvals)])
+    res['p'] = zscore_combine(res['p'], cor, mid=mid)
+    res['t'], res['coef'] = res['t'].mean(), res['coef'].mean()
+    return res
+
 
 def zscore_cluster(formula, cluster, covs, coef, method=OLS, method_kwargs=None, mid=np.mean):
     """Model clusters by fitting model at each site and then
     combining using the z-score method. Same signature as
     :func:`~gee_cluster`"""
     methylations = np.array([f.values for f in cluster])
-    r = _combine_cluster(formula, methylations, covs, coef, method=method)
+    r = _combine_cluster(formula, methylations, covs, coef, method=method,
+            method_kwargs=method_kwargs)
     r['p'] = zscore_combine(r['p'], r.pop('corr'), mid=mid)
     r['t'], r['coef'] = r['t'].mean(), r['coef'].mean()
     return r
