@@ -243,10 +243,24 @@ def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None,
         # than we have in sizes
         if l in sim_idxs:
             s = seen[l]
+            """
+i          1/log(1+l)          2/(1+log(l))    1/(1+log(l))
+1          1.443               2.000           1.000
+2          0.910               1.181           0.591
+3          0.721               0.953           0.477
+4          0.621               0.838           0.419
+5          0.558               0.766           0.383
+6          0.514               0.716           0.358
+7          0.481               0.679           0.339
+8          0.455               0.649           0.325
+9          0.434               0.626           0.313
+10         0.417               0.606           0.303
+            """
             # denominator sets larger DMRs to have a smaller per-probe effect.
             #w = int(s in sim_idxs[l]) / log(l + 1)
-            #w = int(s in sim_idxs[l]) * 2 / (1 + log(i))
-            w = 2 * int(s in sim_idxs[l])
+            #w = 2 * int(s in sim_idxs[l])
+            w = int(s in sim_idxs[l]) * 2 / (1 + log(l))
+            w = int(s in sim_idxs[l]) / (log(l + 1))
             seen[l] += 1
             if w > 0: changed[l] += 1
 
