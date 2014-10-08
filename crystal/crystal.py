@@ -179,20 +179,6 @@ def glsar_cluster(formula, cluster, covs, coef, rho=6):
     res = GLSAR.from_formula(formula, data=cov_rep, rho=rho).iterative_fit(maxiter=5)
     return get_ptc(res, coef)
 
-def gls_cluster(formula, cluster, covs, coef):
-    methylation = np.array([f.values for f in cluster])
-    # TODO: currently this is very, very slow
-    cov_rep = long_covs(covs, methylation)
-    c = np.array(pd.DataFrame(methylation).corr())
-    n = methylation.shape[0]
-    sigma = np.repeat(np.repeat(c, n, axis=0), n, axis=1)
-
-    sigma[np.tril_indices_from(sigma)] = 0
-    sigma[np.diag_indices_from(sigma)] = 1
-
-    res = GLS.from_formula(formula, data=cov_rep, sigma=sigma).fit()
-    return get_ptc(res, coef)
-
 def mixed_model_cluster(formula, cluster, covs, coef):
     """Model clusters with a mixed-model, same signature as
     :func:`~gee_cluster`"""
@@ -207,19 +193,6 @@ def mixed_model_cluster(formula, cluster, covs, coef):
 
     return get_ptc(res, coef)
 
-def stouffer_liptak_combine(pvals, sigma):
-    """Combine p-values accounting for correlation."""
-    qvals = norm.isf(pvals).reshape(len(pvals), 1)
-    try:
-        C = np.asmatrix(chol(sigma)).I
-    except np.linalg.linalg.LinAlgError:
-          # for non positive definite matrix default to z-score correction.
-          return zscore_combine(pvals, sigma)
-
-    qvals = C * qvals
-    Cp = qvals.sum() / np.sqrt(len(qvals))
-    return norm.sf(Cp)
-
 def zscore_combine(pvals, sigma, mid=np.mean):
     if np.all(np.isnan(sigma)): return np.nan
     z, L = mid(norm.isf(pvals)), len(pvals)
@@ -228,7 +201,7 @@ def zscore_combine(pvals, sigma, mid=np.mean):
 
 def _combine_cluster(formula, methylations, covs, coef, method,
         _corr=True, method_kwargs=None):
-    """function called by z-score and liptak to get pvalues"""
+    """function called by z-score to get pvalues"""
     if method_kwargs is None: method_kwargs = {}
     assert not 'methylation' in covs
     res = [method.from_formula(formula, covs, **method_kwargs).fit()
@@ -249,17 +222,6 @@ def _combine_cluster(formula, methylations, covs, coef, method,
 
 def bayes_cluster():
     pass
-
-def liptak_cluster(formula, cluster, covs, coef, method=OLS):
-    """Model clusters by fitting model at each site and then
-    combining using :func:`~stouffer_liptak`. same signature as
-    :func:`~gee_cluster`"""
-    methylations = np.array([f.values for f in cluster])
-    r = _combine_cluster(formula, methylations, covs, coef, method=method)
-    r['p'] = stouffer_liptak_combine(r['p'], r['corr'])
-    r['t'], r['coef'] = r['t'].mean(), r['coef'].mean()
-    r.pop('corr')
-    return r
 
 def zscore_cluster(formula, cluster, covs, coef, method=OLS, method_kwargs=None, mid=np.mean):
     """Model clusters by fitting model at each site and then

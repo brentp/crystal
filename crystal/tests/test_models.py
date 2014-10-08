@@ -44,7 +44,6 @@ def test_models():
     """testing models on cluster"""
     for coef in ('age', 'gender'):
         for m, form in ((crystal.zscore_cluster, formula),
-                  (crystal.liptak_cluster, formula),
                   (crystal.bump_cluster, formula),
                   (crystal.gee_cluster, formula_cpg),
                   (crystal.mixed_model_cluster, formula_cpg),
@@ -63,6 +62,14 @@ def test_model_clusters():
     for v in ('var', 'n_sites', 'sites', 'time', 'chrom', 'start', 'end'):
         assert v in r
 
+def test_beta_clusters():
+
+    r = list(crystal.model_clusters([cluster], covs, formula, "age",
+        crystal.zscore_cluster, method=crystal.Beta, transform=crystal.ilogit, n_cpu=1))
+    assert len(r) == 1
+    r = r[0]
+    for v in ('var', 'n_sites', 'sites', 'time', 'chrom', 'start', 'end'):
+        assert v in r
 
 def test_long_covs():
 
