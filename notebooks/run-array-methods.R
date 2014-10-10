@@ -32,8 +32,8 @@ run.bumphunter = function(M, design, coef="genderM", outf){
     stopifnot(length(coef) == 1)
 
     cl = clusterMaker(chroms, posns, maxGap=300)
-    registerDoParallel(cores=5)
-    tab = bumphunter(M, design, chroms, posns, cl, smooth=TRUE, B=400, cutoff=0.01, coef=coef)#pickCutoff=T)
+    registerDoParallel(cores=3)
+    tab = bumphunter(M, design, chroms, posns, cl, smooth=TRUE, B=200, cutoff=0.01, coef=coef)#pickCutoff=T)
     colnames(tab$table)[1] = "chrom"
     tab$table$p = tab$table$p.value # p.valueArea
     write.table(tab$table, file=outf, quote=F, sep="\t", row.names=F)
@@ -68,7 +68,7 @@ run.champ = function(M, design, coef, outf){
 }
 
 
-run.betabinomial = function(M, design, coef, outf, mc.cores=5){
+run.betabinomial = function(M, design, coef, outf, mc.cores=9){
     library(betareg)
     library(parallel)
     model = paste(grep("Intercept", colnames(design), invert=T, value=T), collapse=" + ")
@@ -101,8 +101,9 @@ M = as.matrix(read.delim(args[2], row.names=1))#, nrow=2000))
 design = model.matrix(~ gender + age, covs)
 coef = "genderM"
 
+run.bumphunter(M, design, coef, outf='work/bumphunter.output.txt')
+stop()
 run.betabinomial(M, design, coef, outf='work/betabinomial.output.txt')
 run.dmrcate(M, design, coef, outf='work/dmrcate.output.txt')
 run.limma(M, design, coef, outf='work/limma.output.txt')
-run.bumphunter(M, design, coef, outf='work/bumphunter.output.txt')
 run.champ(M, design, coef, outf='work/champ.output.txt')
