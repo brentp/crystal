@@ -101,9 +101,8 @@ M = as.matrix(read.delim(args[2], row.names=1))#, nrow=2000))
 design = model.matrix(~ gender + age, covs)
 coef = "genderM"
 
-run.bumphunter(M, design, coef, outf='work/bumphunter.output.txt')
-stop()
-run.betabinomial(M, design, coef, outf='work/betabinomial.output.txt')
 run.dmrcate(M, design, coef, outf='work/dmrcate.output.txt')
 run.limma(M, design, coef, outf='work/limma.output.txt')
+run.bumphunter(M, design, coef, outf='work/bumphunter.output.txt')
+run.betabinomial(M, design, coef, outf='work/betabinomial.output.txt')
 run.champ(M, design, coef, outf='work/champ.output.txt')

@@ -39,7 +39,7 @@ def run_radmeth(design, fmethylated, fcounts, dmrs_out, bins="1:200:1"):
     for c in design.columns:
         design[c] = design[c].astype(int)
 
-
+    design.columns = [c.split("[")[0] for c in design.columns]
     designf = mktemp()
     design.to_csv(designf, sep="\t", index=True, index_label=False)
 
@@ -65,8 +65,18 @@ if __name__ == "__main__":
     fmethylated = "/drive/450k/mthfr/methylated4.txt.gz"
     fcounts = "/drive/450k/mthfr/counts4.txt.gz"
 
-    bed = run_radmeth(X, fmethylated, fcounts, dmrs_out, bins="1:200:1")
+    #bed = run_radmeth(X, fmethylated, fcounts, dmrs_out, bins="1:300:1")
+    bed = dmrs_out
+    import crystal
+    from crystal.evaluate import evaluate
+    from matplotlib import pyplot as plt
 
-    t, v = roc_out(bed, 5, "../crystal/notebooks/mthfr-region.bed")
-    fpr, tpr, _ = roc_curve(t, v)
-    print auc(fpr, tpr)
+    regions = [(d[0], int(d[1]), int(d[2]), float(d[4]), 1) for d in \
+            ts.reader(bed, header=False)]
+    fig, ax = plt.subplots(1)
+    evaluate_modeled_regions(regions, "notebook/mthfr-regions.bed", ax=ax)
+    plt.show()
+
+    #t, v = roc_out(bed, 5, "../crystal/notebooks/mthfr-region.bed")
+    #fpr, tpr, _ = roc_curve(t, v)
+    #print auc(fpr, tpr)

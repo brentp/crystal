@@ -22,6 +22,7 @@ from statsmodels.genmod.cov_struct import Exchangeable, Independence
 from statsmodels.genmod.families import (Gaussian, Poisson,
         NegativeBinomial as NB)
 from statsmodels.discrete.discrete_model import NegativeBinomial
+from statsmodels.tools.sm_exceptions import PerfectSeparationError
 
 def long_covs(covs, methylation, **kwargs):
     covs['id'] = ['id_%i' % i for i in range(len(covs))]
@@ -67,7 +68,6 @@ def get_ptc(fit, coef):
         return dict(p=np.nan, t=np.nan, coef=np.nan,
                 covar=fit.model.exog_names[idx[0]])
 
-from statsmodels.tools.sm_exceptions import PerfectSeparationError
 
 def one_cluster(formula, feature, covs, coef, method=OLS,
                 _pat=re.compile("\+\s*CpG")):
@@ -195,6 +195,7 @@ def mixed_model_cluster(formula, cluster, covs, coef):
 
 def zscore_combine(pvals, sigma, mid=np.mean):
     if np.all(np.isnan(sigma)): return np.nan
+    pvals[pvals == 1] = 1.0 - 9e-16
     z, L = mid(norm.isf(pvals)), len(pvals)
     sz = 1.0 / L * np.sqrt(L + 2 * np.tril(sigma, k=-1).sum())
     return norm.sf(z / sz)
@@ -221,24 +222,25 @@ def _combine_cluster(formula, methylations, covs, coef, method,
     return res
 
 def beta_count_cluster(formula, cluster, covs, coef, mid=np.mean):
+    from .betareg import Beta
     methylations = np.array([f.values for f in cluster])
     counts = np.array([f.counts for f in cluster])
-    res = [Beta.from_formula(formula, covs,
-            Z=np.column_stack(np.ones_like(count), count)).fit()
-            for count, methylation in zip(counts, methylations)]
-    idx = [i for i, par in enumerate(res[0].model.exog_names)
-                   if par.startswith(coef)][0]
-    pvals = np.array([r.pvalues[idx] for r in res], dtype=np.float64)
-    pvals[pvals == 1] = 1.0 - 9e-16
-    res = dict(t=np.array([r.tvalues[idx] for r in res]),
-                coef=np.array([r.params[idx] for r in res]),
-                covar=res[0].model.exog_names[idx],
-                p=pvals[~np.isnan(pvals)])
-    del r
+    res = []
+    for count, methylation in zip(counts, methylations):
+        Z = np.column_stack((np.ones_like(count), count))
+        Z = Z[Z[:, 1] > 0]
+        try:
+            res.append(get_ptc(Beta.from_formula(formula, covs, Z=Z).fit(),
+                coef))
+        except PerfectSeparationError:
+            res.append(dict(t=np.nan, coef=np.nan, p=np.nan, covar=coef))
+    pvals = np.array([r['p'] for r in res])
     cor = corr(methylations[~np.isnan(pvals)])
-    res['p'] = zscore_combine(res['p'], cor, mid=mid)
-    res['t'], res['coef'] = res['t'].mean(), res['coef'].mean()
-    return res
+    r = {}
+    r['p'] = zscore_combine(pvals, cor, mid=mid)
+    r['t'], r['coef'] = (np.mean([rs['t'] for rs in res]),
+                         np.mean([rs['coef'] for rs in res]))
+    return r
 
 
 def zscore_cluster(formula, cluster, covs, coef, method=OLS, method_kwargs=None, mid=np.mean):
