@@ -15,7 +15,7 @@ def cluster_bediter(modeled_clusters):
         c = m['cluster']
         yield (c[0].chrom, c[0].position - 1, c[-1].position, m['p'], len(c))
 
-def evaluate(bed_iter, regions, size=None, label='', ax=None, **plot_kwargs):
+def evaluate(bed_iter, regions, sizes=None, label='', ax=None, **plot_kwargs):
     """
     Evaluate the accuracy of a method (`model_fn`) by comparing how many
     fall into a set of "truth" regions vs. outside.
@@ -30,8 +30,8 @@ def evaluate(bed_iter, regions, size=None, label='', ax=None, **plot_kwargs):
     regions : file
         BED file of regions.
 
-    size : int
-        which size region to test. default (None) is all sizes.
+    sizes : tuple(int,)
+        which size regions to test. default (None) is all sizes.
 
     label : str
         label for plot legend
@@ -46,13 +46,15 @@ def evaluate(bed_iter, regions, size=None, label='', ax=None, **plot_kwargs):
     for i, toks in enumerate(ts.reader(regions, header=False)):
         # see if it's a header.
         if i == 0 and not (toks[1] + toks[2]).isdigit(): continue
+        # if they request a specific size, only regions of exactly
+        # that length are kept.
+        if sizes is not None and int(toks[4]) not in sizes: continue
         # seen used keep track of the regions we've found
         chrom, start, end = toks[0], int(toks[1]), int(toks[2])
         if len(toks) <= 3 or toks[3][:3] == "tru":
             true_regions[chrom].add((start, end))
         else:
             false_regions[chrom].add((start, end))
-
 
     seen_true = defaultdict(set)
     seen_false = defaultdict(set)
@@ -64,6 +66,7 @@ def evaluate(bed_iter, regions, size=None, label='', ax=None, **plot_kwargs):
         return len(found)
 
     no_false = len(false_regions) == 0
+    if no_false: assert sizes is None, ('cant have sizes without false regions')
 
     truths = []
     ps = []
@@ -71,14 +74,11 @@ def evaluate(bed_iter, regions, size=None, label='', ax=None, **plot_kwargs):
         chrom, start, end, p, n_sites = b[:5]
         assert isinstance(b[1], int)
         n_true = is_in(b, true_regions, seen_true)
-        # also keep track of which false regions have been seen, but don't use
-        # the return value
+        # also keep track of which false regions have been seen
         if no_false:
             n_false = n_sites - n_true
         else:
             n_false = is_in(b, false_regions, seen_false)
-            # can't have this assertion because other tools find things outside the
-            # given data.
             #assert n_true + n_false == n_sites, (n_true, n_false, b)
 
         # here, we multiply because each region can overlap multiple sites
@@ -123,6 +123,40 @@ def evaluate(bed_iter, regions, size=None, label='', ax=None, **plot_kwargs):
     ax.set_xlabel('1 - specificity')
     ax.set_ylabel('sensitivity')
     return truths, ps
+
+def write_region_bed(feature_iter, true_regions, out_fh):
+    """
+    Write a region bed file suitable for use in :func:`~evaluate_modeled_regions`.
+    given true regions (likely from an external program, otherwise use
+    :func:`~write_modeled_regions`).
+
+    Parameters
+    ----------
+
+    feature_iter : iterable of Features
+
+    true_regions : file
+        BED file containing true regions
+
+    out_fh : filehandle
+        where to write the data
+    """
+    fmt = "{chrom}\t{start}\t{end}\t{truth}\t{size}\n"
+    out_fh.write(ts.fmt2header(fmt))
+
+    regions = defaultdict(InterLap)
+
+    for i, toks in enumerate(ts.reader(true_regions, header=False)):
+        # see if it's a header.
+        if i == 0 and not (toks[1] + toks[2]).isdigit(): continue
+        chrom, start, end = toks[0], int(toks[1]), int(toks[2])
+        regions[chrom].add((start, end))
+
+    for f in feature_iter:
+        truth = 'true' if (f.position, f.position) in regions[f.chrom] else 'false'
+        out_fh.write(fmt.format(chrom=f.chrom, start=f.position - 1,
+                    end=f.position, truth=truth, size=1))
+    out_fh.flush()
 
 def plot_roc(ax, r, plot_kwargs={}):
     """
