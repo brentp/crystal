@@ -145,7 +145,7 @@
 correlated data. The most likely use-case is for DNA methylation data, but
 it can be use for any correlated data.</p>
 <p>New users should check-out the introductory IPython notebook <a class="reference external" href="http://nbviewer.ipython.org/github/brentp/crystal/blob/master/notebooks/Introduction.ipynb">here</a>.</p>
-<p>Developers interested in evaluating their own method should view <a class="reference external" href="http://nbviewer.ipython.org/github/brentp/crystal/blob/master/notebooks/crystal-methods-evaluation.ipynb">this notebook</a>.</p>
+<p>Developers interested in evaluating their own method should view <a class="reference external" href="http://nbviewer.ipython.org/github/brentp/crystal/blob/master/notebooks/crystal-evaluate-by-simulation.ipynb">this notebook</a>.</p>
 </div>
 <div class="section" id="api-docs">
 <h1>API Docs<a class="headerlink" href="#api-docs" title="Permalink to this headline">¶</a></h1>
@@ -238,6 +238,7 @@ to modify this script to run on any data.</p>
     <span class="k">print</span><span class="p">(</span><span class="n">fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">c</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">c</span><span class="p">[</span><span class="s">&#39;p&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">1e-3</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s">&#39;coef&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">0.2</span> <span class="ow">and</span> <span class="n">c</span><span class="p">[</span><span class="s">&#39;n_sites&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
         <span class="n">crystal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">spaghetti_plot</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">covs</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s">&#39;/tmp/figure-1.eps&#39;</span><span class="p">)</span>
         <span class="k">break</span>
 </pre></div>
 </div>

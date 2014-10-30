@@ -135,7 +135,7 @@
 <p><em>crystal.simulate</em> contains functions to simulate clusters.</p>
 <span class="target" id="module-crystal.simulate"></span><dl class="function">
 <dt id="crystal.simulate.rr_cluster">
-<tt class="descclassname">crystal.simulate.</tt><tt class="descname">rr_cluster</tt><big>(</big><em>cluster</em>, <em>covs</em>, <em>formula='methylation ~ age'</em><big>)</big><a class="reference internal" href="_modules/crystal/simulate.html#rr_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.simulate.rr_cluster" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">crystal.simulate.</tt><tt class="descname">rr_cluster</tt><big>(</big><em>cluster</em>, <em>covs</em>, <em>formula</em><big>)</big><a class="reference internal" href="_modules/crystal/simulate.html#rr_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.simulate.rr_cluster" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set cluster values to reduced-residuals.</p>
 </dd></dl>
 
@@ -173,7 +173,7 @@ which group (0 or 1) each sample belongs to.</p>
 
 <dl class="function">
 <dt id="crystal.simulate.simulate_regions">
-<tt class="descclassname">crystal.simulate.</tt><tt class="descname">simulate_regions</tt><big>(</big><em>clust_list</em>, <em>region_fh</em>, <em>sizes={1: 200</em>, <em>2: 200</em>, <em>4: 100</em>, <em>6: 100</em>, <em>8: 100</em>, <em>10: 100}</em>, <em>class_order=None</em>, <em>seed=42</em>, <em>get_reduced_residuals=None</em>, <em>get_reduced_residuals_args=()</em><big>)</big><a class="reference internal" href="_modules/crystal/simulate.html#simulate_regions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.simulate.simulate_regions" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">crystal.simulate.</tt><tt class="descname">simulate_regions</tt><big>(</big><em>clust_list</em>, <em>region_fh</em>, <em>sizes={1: 400</em>, <em>2: 400</em>, <em>3: 200</em>, <em>4: 100</em>, <em>6: 100</em>, <em>7: 80</em>, <em>8: 60</em>, <em>9: 40</em>, <em>10: 10}</em>, <em>class_order=None</em>, <em>seed=42</em>, <em>get_reduced_residuals=None</em>, <em>get_reduced_residuals_args=()</em><big>)</big><a class="reference internal" href="_modules/crystal/simulate.html#simulate_regions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.simulate.simulate_regions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simulate regions and randomize others.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -199,7 +199,7 @@ others are randomized.</p>
 </div></blockquote>
 <p><strong>classes</strong> : np.array</p>
 <blockquote>
-<div><p>same length as cluster[*].values indicating
+<div><p>same length as cluster[i].values indicating
 which group each sample belongs to.</p>
 </div></blockquote>
 <p><strong>seed: int</strong></p>

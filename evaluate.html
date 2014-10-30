@@ -139,8 +139,8 @@
 <h1>evaluate<a class="headerlink" href="#evaluate" title="Permalink to this headline">¶</a></h1>
 <p><strong>crystal.evaluate</strong> contains functions to evaluate methods for modeling clusters.</p>
 <span class="target" id="module-crystal.evaluate"></span><dl class="function">
-<dt id="crystal.evaluate.evaluate_modeled_regions">
-<tt class="descclassname">crystal.evaluate.</tt><tt class="descname">evaluate_modeled_regions</tt><big>(</big><em>bed_iter</em>, <em>regions</em>, <em>size=None</em>, <em>label=''</em>, <em>ax=None</em>, <em>**plot_kwargs</em><big>)</big><a class="reference internal" href="_modules/crystal/evaluate.html#evaluate_modeled_regions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.evaluate.evaluate_modeled_regions" title="Permalink to this definition">¶</a></dt>
+<dt id="crystal.evaluate.evaluate">
+<tt class="descclassname">crystal.evaluate.</tt><tt class="descname">evaluate</tt><big>(</big><em>bed_iter</em>, <em>regions</em>, <em>sizes=None</em>, <em>label=''</em>, <em>ax=None</em>, <em>**plot_kwargs</em><big>)</big><a class="reference internal" href="_modules/crystal/evaluate.html#evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.evaluate.evaluate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate the accuracy of a method (<cite>model_fn</cite>) by comparing how many
 fall into a set of &#8220;truth&#8221; regions vs. outside.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -156,9 +156,9 @@ can be regions or features.</p>
 <blockquote>
 <div><p>BED file of regions.</p>
 </div></blockquote>
-<p><strong>size</strong> : int</p>
+<p><strong>sizes</strong> : tuple(int,)</p>
 <blockquote>
-<div><p>which size region to test. default (None) is all sizes.</p>
+<div><p>which size regions to test. default (None) is all sizes.</p>
 </div></blockquote>
 <p><strong>label</strong> : str</p>
 <blockquote>
@@ -217,7 +217,7 @@ from <tt class="xref py py-func docutils literal"><span class="pre">evalute_meth
 <dl class="function">
 <dt id="crystal.evaluate.write_modeled_regions">
 <tt class="descclassname">crystal.evaluate.</tt><tt class="descname">write_modeled_regions</tt><big>(</big><em>modeled_clusters</em>, <em>p_cutoff</em>, <em>out_fh</em><big>)</big><a class="reference internal" href="_modules/crystal/evaluate.html#write_modeled_regions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.evaluate.write_modeled_regions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write a region bed file suitable for use in <a class="reference internal" href="#crystal.evaluate.evaluate_modeled_regions" title="crystal.evaluate.evaluate_modeled_regions"><tt class="xref py py-func docutils literal"><span class="pre">evaluate_modeled_regions()</span></tt></a>.</p>
+<dd><p>Write a region bed file suitable for use in <tt class="xref py py-func docutils literal"><span class="pre">evaluate_modeled_regions()</span></tt>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -229,6 +229,31 @@ from <tt class="xref py py-func docutils literal"><span class="pre">evalute_meth
 <p><strong>p_cutoff</strong> : float</p>
 <blockquote>
 <div><p>values &lt; this are set as true</p>
+</div></blockquote>
+<p><strong>out_fh</strong> : filehandle</p>
+<blockquote class="last">
+<div><p>where to write the data</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="crystal.evaluate.write_region_bed">
+<tt class="descclassname">crystal.evaluate.</tt><tt class="descname">write_region_bed</tt><big>(</big><em>feature_iter</em>, <em>true_regions</em>, <em>out_fh</em><big>)</big><a class="reference internal" href="_modules/crystal/evaluate.html#write_region_bed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.evaluate.write_region_bed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a region bed file suitable for use in <tt class="xref py py-func docutils literal"><span class="pre">evaluate_modeled_regions()</span></tt>.
+given true regions (likely from an external program, otherwise use
+<a class="reference internal" href="#crystal.evaluate.write_modeled_regions" title="crystal.evaluate.write_modeled_regions"><tt class="xref py py-func docutils literal"><span class="pre">write_modeled_regions()</span></tt></a>).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>feature_iter</strong> : iterable of Features</p>
+<p><strong>true_regions</strong> : file</p>
+<blockquote>
+<div><p>BED file containing true regions</p>
 </div></blockquote>
 <p><strong>out_fh</strong> : filehandle</p>
 <blockquote class="last">

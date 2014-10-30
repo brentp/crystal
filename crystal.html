@@ -195,7 +195,7 @@ values that are the methylation measurements (should be logit transformed).</p>
 
 <dl class="function">
 <dt id="crystal.crystal.bump_cluster">
-<tt class="descclassname">crystal.crystal.</tt><tt class="descname">bump_cluster</tt><big>(</big><em>formula</em>, <em>cluster</em>, <em>covs</em>, <em>coef</em>, <em>nsims=20000</em>, <em>value_fn=&lt;function coef_sum at 0x2b655ac847d0&gt;</em>, <em>robust=False</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#bump_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.bump_cluster" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">crystal.crystal.</tt><tt class="descname">bump_cluster</tt><big>(</big><em>formula</em>, <em>cluster</em>, <em>covs</em>, <em>coef</em>, <em>nsims=20000</em>, <em>value_fn=&lt;function coef_sum at 0x2ac156fd10c8&gt;</em>, <em>method=&lt;class 'statsmodels.regression.linear_model.OLS'&gt;</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#bump_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.bump_cluster" title="Permalink to this definition">¶</a></dt>
 <dd><p>Model clusters by fitting model at each site and then comparing some
 metric to the same metric from models fit to simulated data.
 Uses sequential Monte-carlo to stop once we know the simulated p-value is
@@ -205,7 +205,7 @@ high (since we are always interested in low p-values).</p>
 
 <dl class="function">
 <dt id="crystal.crystal.gee_cluster">
-<tt class="descclassname">crystal.crystal.</tt><tt class="descname">gee_cluster</tt><big>(</big><em>formula</em>, <em>cluster</em>, <em>covs</em>, <em>coef</em>, <em>cov_struct=&lt;statsmodels.genmod.dependence_structures.covstruct.Exchangeable object at 0x2b6558248350&gt;</em>, <em>family=&lt;statsmodels.genmod.families.family.Gaussian object at 0x2b6558248390&gt;</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#gee_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.gee_cluster" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">crystal.crystal.</tt><tt class="descname">gee_cluster</tt><big>(</big><em>formula</em>, <em>cluster</em>, <em>covs</em>, <em>coef</em>, <em>cov_struct=&lt;statsmodels.genmod.cov_struct.Exchangeable object at 0x2ac15544d610&gt;</em>, <em>family=&lt;statsmodels.genmod.families.family.Gaussian object at 0x2ac15544d650&gt;</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#gee_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.gee_cluster" title="Permalink to this definition">¶</a></dt>
 <dd><p>An example of a <cite>model_fn</cite>; any function with a similar signature
 can be used.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -256,14 +256,6 @@ estimate (&#8216;coef&#8217;) and any other information desired.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="crystal.crystal.liptak_cluster">
-<tt class="descclassname">crystal.crystal.</tt><tt class="descname">liptak_cluster</tt><big>(</big><em>formula</em>, <em>cluster</em>, <em>covs</em>, <em>coef</em>, <em>robust=False</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#liptak_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.liptak_cluster" title="Permalink to this definition">¶</a></dt>
-<dd><p>Model clusters by fitting model at each site and then
-combining using <tt class="xref py py-func docutils literal"><span class="pre">stouffer_liptak()</span></tt>. same signature as
-<a class="reference internal" href="#crystal.crystal.gee_cluster" title="crystal.crystal.gee_cluster"><tt class="xref py py-func docutils literal"><span class="pre">gee_cluster()</span></tt></a></p>
-</dd></dl>
-
-<dl class="function">
 <dt id="crystal.crystal.mixed_model_cluster">
 <tt class="descclassname">crystal.crystal.</tt><tt class="descname">mixed_model_cluster</tt><big>(</big><em>formula</em>, <em>cluster</em>, <em>covs</em>, <em>coef</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#mixed_model_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.mixed_model_cluster" title="Permalink to this definition">¶</a></dt>
 <dd><p>Model clusters with a mixed-model, same signature as
@@ -272,7 +264,7 @@ combining using <tt class="xref py py-func docutils literal"><span class="pre">s
 
 <dl class="function">
 <dt id="crystal.crystal.model_clusters">
-<tt class="descclassname">crystal.crystal.</tt><tt class="descname">model_clusters</tt><big>(</big><em>clust_iter</em>, <em>clin_df</em>, <em>formula</em>, <em>coef</em>, <em>model_fn=&lt;function gee_cluster at 0x2b655ac842a8&gt;</em>, <em>pool=None</em>, <em>n_cpu=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#model_clusters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.model_clusters" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">crystal.crystal.</tt><tt class="descname">model_clusters</tt><big>(</big><em>clust_iter</em>, <em>clin_df</em>, <em>formula</em>, <em>coef</em>, <em>model_fn=&lt;function gee_cluster at 0x2ac156fcbc80&gt;</em>, <em>pool=None</em>, <em>transform=None</em>, <em>n_cpu=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#model_clusters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.model_clusters" title="Permalink to this definition">¶</a></dt>
 <dd><p>For each cluster in an iterable, evaluate the chosen model and
 yield a dictionary of information</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -302,6 +294,10 @@ methylation ~ age + gender + race</p>
 fn(formula, methylation, covs, coef, kwargs)
 that returns a dictionary with at least p-value and coef</p>
 </div></blockquote>
+<p><strong>transform: fn</strong></p>
+<blockquote>
+<div><p>A function that modifies the data before modeling.</p>
+</div></blockquote>
 <p><strong>n_cpu</strong> : int</p>
 <p><strong>kwargs: dict</strong></p>
 <blockquote class="last">
@@ -328,14 +324,8 @@ that returns a dictionary with at least p-value and coef</p>
 
 <dl class="function">
 <dt id="crystal.crystal.one_cluster">
-<tt class="descclassname">crystal.crystal.</tt><tt class="descname">one_cluster</tt><big>(</big><em>formula</em>, <em>feature</em>, <em>covs</em>, <em>coef</em>, <em>robust=False</em>, <em>_pat=&lt;_sre.SRE_Pattern object at 0x2b655abddf08&gt;</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#one_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.one_cluster" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">crystal.crystal.</tt><tt class="descname">one_cluster</tt><big>(</big><em>formula</em>, <em>feature</em>, <em>covs</em>, <em>coef</em>, <em>method=&lt;class 'statsmodels.regression.linear_model.OLS'&gt;</em>, <em>_pat=&lt;_sre.SRE_Pattern object at 0x2ac156fcc030&gt;</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#one_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.one_cluster" title="Permalink to this definition">¶</a></dt>
 <dd><p>used when we have a &#8220;cluster&#8221; with 1 probe.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="crystal.crystal.stouffer_liptak_combine">
-<tt class="descclassname">crystal.crystal.</tt><tt class="descname">stouffer_liptak_combine</tt><big>(</big><em>pvals</em>, <em>sigma</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#stouffer_liptak_combine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.stouffer_liptak_combine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Combine p-values accounting for correlation.</p>
 </dd></dl>
 
 <dl class="function">
@@ -347,7 +337,7 @@ to call just OLS when there is a single probe.</p>
 
 <dl class="function">
 <dt id="crystal.crystal.zscore_cluster">
-<tt class="descclassname">crystal.crystal.</tt><tt class="descname">zscore_cluster</tt><big>(</big><em>formula</em>, <em>cluster</em>, <em>covs</em>, <em>coef</em>, <em>robust=False</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#zscore_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.zscore_cluster" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">crystal.crystal.</tt><tt class="descname">zscore_cluster</tt><big>(</big><em>formula</em>, <em>cluster</em>, <em>covs</em>, <em>coef</em>, <em>method=&lt;class 'statsmodels.regression.linear_model.OLS'&gt;</em>, <em>method_kwargs=None</em>, <em>mid=&lt;function mean at 0x2ac146cbc050&gt;</em><big>)</big><a class="reference internal" href="_modules/crystal/crystal.html#zscore_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#crystal.crystal.zscore_cluster" title="Permalink to this definition">¶</a></dt>
 <dd><p>Model clusters by fitting model at each site and then
 combining using the z-score method. Same signature as
 <a class="reference internal" href="#crystal.crystal.gee_cluster" title="crystal.crystal.gee_cluster"><tt class="xref py py-func docutils literal"><span class="pre">gee_cluster()</span></tt></a></p>

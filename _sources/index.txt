@@ -14,7 +14,7 @@ it can be use for any correlated data.
 
 New users should check-out the introductory IPython notebook `here <http://nbviewer.ipython.org/github/brentp/crystal/blob/master/notebooks/Introduction.ipynb>`_.
 
-Developers interested in evaluating their own method should view `this notebook <http://nbviewer.ipython.org/github/brentp/crystal/blob/master/notebooks/crystal-methods-evaluation.ipynb>`_.
+Developers interested in evaluating their own method should view `this notebook <http://nbviewer.ipython.org/github/brentp/crystal/blob/master/notebooks/crystal-evaluate-by-simulation.ipynb>`_.
 
 API Docs
 ========
