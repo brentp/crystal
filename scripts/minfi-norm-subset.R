@@ -35,7 +35,11 @@ for(method in c(preprocessRaw, preprocessQuantile, preprocessSWAN, preprocessFun
     m = m[!bad_probes,]
     m = m[!rownames(m) %in% xprobes,]
 
-    b.norm = getBeta(m)
+    if(methods[i] == "raw"){
+        b.norm = getBeta(m, betaThreshold=0.001, offset=1)
+    } else {
+        b.norm = getBeta(m)
+    }
     # squeeze to prevent 0, 1 according to Smithson (lemon squeezer)
     b.norm = ((b.norm - 0.5) * 0.99) + 0.5
     print("OK")

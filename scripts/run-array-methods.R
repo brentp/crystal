@@ -97,12 +97,13 @@ args = commandArgs(TRUE)
 covs = read.csv(args[1])
 rownames(covs) = covs$id
 M = as.matrix(read.delim(args[2], row.names=1))#, nrow=2000))
+prefix = args[3]
 
 design = model.matrix(~ gender + age, covs)
-coef = "genderM"
+coef = ifelse(is.na(args[4]), "genderM", args[4])
 
-run.dmrcate(M, design, coef, outf='work/dmrcate.output.txt')
-run.limma(M, design, coef, outf='work/limma.output.txt')
-run.bumphunter(M, design, coef, outf='work/bumphunter.output.txt')
-run.betabinomial(M, design, coef, outf='work/betabinomial.output.txt')
-run.champ(M, design, coef, outf='work/champ.output.txt')
+run.dmrcate(M, design, coef, outf=sprintf("%s%s", prefix, "dmrcate.output.bed"))
+run.limma(M, design, coef, outf=sprintf("%s%s", prefix, 'limma.output.bed'))
+run.bumphunter(M, design, coef, outf=sprintf("%s%s", prefix, 'bumphunter.output.bed'))
+run.betabinomial(M, design, coef, outf=sprintf("%s%s", prefix, 'betabinomial.output.bed'))
+run.champ(M, design, coef, outf=sprintf("%s%s", prefix, 'champ.output.bed'))

@@ -33,4 +33,5 @@ for i, c in enumerate(crystal.model_clusters(cluster_iter,
     print(fmt.format(**c))
     if c['p'] < 1e-3 and abs(c['coef']) > 0.2 and c['n_sites'] > 3:
         crystal.plot.spaghetti_plot(c, covs)
+        plt.savefig('/tmp/figure-1.eps')
         break
