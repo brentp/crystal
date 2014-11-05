@@ -212,9 +212,9 @@ def _combine_cluster(formula, methylations, covs, coef, method,
     pvals = np.array([r.pvalues[idx] for r in res], dtype=np.float64)
     pvals[pvals == 1] = 1.0 - 9e-16
     res = dict(t=np.array([r.tvalues[idx] for r in res]),
-                coef=np.array([r.params[idx] for r in res]),
-                covar=res[0].model.exog_names[idx],
-                p=pvals[~np.isnan(pvals)])
+               coef=np.array([r.params[idx] for r in res]),
+               covar=res[0].model.exog_names[idx],
+               p=pvals[~np.isnan(pvals)])
     # save some time for bumphunting where we don't need
     # the correlation.
     if _corr:
