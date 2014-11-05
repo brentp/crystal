@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import crystal
 
+
+
 np.random.seed(42)
 covs = pd.DataFrame({'gender': ['F'] * 10 + ['M'] * 10,
                      'age': np.random.uniform(10, 25, size=20) })
@@ -90,3 +92,26 @@ def test_real_cluster():
     import crystal.utils
     covs, cluster = crystal.utils.real_cluster()
     assert all(len(f.values) == len(covs) for f in cluster)
+
+def test_nb():
+    import crystal.utils
+    covs, cluster = crystal.utils.real_count_cluster()
+    assert all(len(f.values) == len(covs) for f in cluster)
+    res = crystal.nb_cluster('methylation ~ Eos', cluster, covs, 'Eos')
+    assert 'coef' in res, res
+
+def test_gee_nb():
+    import crystal.utils
+    covs, cluster = crystal.utils.real_count_cluster()
+    assert all(len(f.values) == len(covs) for f in cluster)
+    res = crystal.gee_cluster('methylation ~ Eos', cluster, covs, 'Eos', family=crystal.NB())
+    assert 'coef' in res, res
+
+
+def test_beta():
+    import crystal.utils
+    covs, cluster = crystal.utils.real_count_cluster()
+    assert all(len(f.values) == len(covs) for f in cluster)
+    print [f.values for f in cluster]
+    res = crystal.beta_count_cluster('methylation ~ Eos', cluster, covs, 'Eos')
+    assert 'coef' in res, res

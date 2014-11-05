@@ -6,7 +6,7 @@ import pandas as pd
 from .crystal import Feature, CountFeature
 import os
 
-def example_random_cluster(n_samples, n_sites, seed=42):
+def example_random_cluster(n_samples=20, n_sites=4, seed=42):
     np.random.seed(seed)
     if n_samples % 2 != 0: n_samples += 1
 
@@ -75,8 +75,8 @@ def write_cluster(cluster, fh, float_format="%.4f", count_fh=None):
     fmt = "{chrom}:{position}\t{values}\n"
     if isinstance(cluster[0], Feature):
         for f in cluster:
-            fh.write(fmt.format(chrom=f.chrom, position=f.position,
-                    values="\t".join((float_format % v for v in f.values))))
+            values = "\t".join((float_format % v for v in f.values))
+            fh.write(fmt.format(chrom=f.chrom, position=f.position, values=values))
         return
 
 

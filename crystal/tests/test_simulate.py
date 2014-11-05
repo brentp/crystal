@@ -1,5 +1,5 @@
 import crystal
-from crystal.simulate import rr_cluster, simulate_cluster
+from crystal.simulate import rr_cluster, simulate_cluster, simulate_regions
 import crystal.utils
 
 
@@ -38,3 +38,10 @@ def test_rr_count_cluster():
     assert c2[0].values[0] != cluster[0].values[0]
     assert c2[0].counts[0] != cluster[0].counts[0]
     assert c2[0].methylated[0] != cluster[0].methylated[0]
+
+def test_simulate_region():
+    covs, cluster = crystal.utils.real_cluster()
+    
+    r = open('/tmp/_rr.bed', 'w')
+    clusts = list(simulate_regions([cluster], r, sizes={}))
+    assert len(clusts) == 1

@@ -221,9 +221,9 @@ def _combine_cluster(formula, methylations, covs, coef, method,
         res['corr'] = corr(methylations[~np.isnan(pvals)])
     return res
 
-def beta_count_cluster(formula, cluster, covs, coef, mid=np.mean):
+def beta_count_cluster(formula, cluster, covs, coef, mid=np.mean, eps=1e-4):
     from .betareg import Beta
-    methylations = np.array([f.values for f in cluster])
+    methylations = np.array([np.minimum(eps, np.maximum(1-eps, f.values)) for f in cluster])
     counts = np.array([f.counts for f in cluster])
     res = []
     for count, methylation in zip(counts, methylations):
