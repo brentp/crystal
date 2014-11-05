@@ -59,6 +59,8 @@ def plot_cluster(cluster, covs, normed=False):
         >>> formula = "methylation ~ age + gender"
         >>> c = crystal.wrapper(crystal.zscore_cluster, formula, cluster, covs, "gender")
         >>> crystal.plot.plot_cluster(c, covs)
+        >>> c = crystal.wrapper(crystal.zscore_cluster, formula, cluster, covs, "age")
+        >>> crystal.plot.plot_cluster(c, covs)
 
     We will get a different plot if the cluster is a continuous variable.
     """
