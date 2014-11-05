@@ -100,7 +100,7 @@ def test_nb():
     res = crystal.nb_cluster('methylation ~ Eos', cluster, covs, 'Eos')
     assert 'coef' in res, res
 
-def test_nb():
+def test_gee_nb():
     import crystal.utils
     covs, cluster = crystal.utils.real_count_cluster()
     assert all(len(f.values) == len(covs) for f in cluster)
@@ -108,7 +108,7 @@ def test_nb():
     assert 'coef' in res, res
 
 
-def test_nb():
+def test_beta():
     import crystal.utils
     covs, cluster = crystal.utils.real_count_cluster()
     assert all(len(f.values) == len(covs) for f in cluster)
