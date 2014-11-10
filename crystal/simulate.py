@@ -7,13 +7,20 @@ from collections import defaultdict
 from . import CountFeature
 from statsmodels.genmod.families import Poisson
 
-SIZES = dict.fromkeys([1, 2] + range(4, 12, 2), 100)
-SIZES[2] = SIZES[1] = 400
-SIZES[3] = 200
-SIZES[7] = 80
-SIZES[8] = 60
-SIZES[9] = 40
-SIZES[10] = 10
+SIZES = {}
+SIZES[3] = 600
+SIZES[5] = 200
+SIZES[8] = 150
+SIZES[9] = 100
+SIZES[10] = 50
+
+def scale(values):
+    values = np.asarray(values).astype(float)
+    values += values.min()
+    values /= values.max()
+    # squeeze
+    values = 0.5 + 0.90 * (values - 0.5)
+    return values / values.sum()
 
 def rr_cluster(cluster, covs, formula):
     """Set cluster values to reduced-residuals."""
@@ -81,7 +88,7 @@ def simulate_cluster(cluster, w=0, class_order=None,
         idxs = np.arange(len(cluster[0].values))
         np.random.shuffle(idxs)
         for feature in cluster:
-            feature.values[:] = feature.values[idxs]
+            feature.values = feature.values[idxs]
             for attr in attrs:
                 setattr(feature, attr, getattr(feature, attr)[idxs])
             # add the shuffled residuals to the fitted values
@@ -93,7 +100,8 @@ def simulate_cluster(cluster, w=0, class_order=None,
     N = len(cluster[0].values)
     nH, r = divmod(N, 2)
     nL = nH + 1
-
+    if nL + nH > N:
+        nL -= 1
 
     if class_order is None:
         class_order = np.zeros_like(cluster[0].values).astype(int)
@@ -103,14 +111,19 @@ def simulate_cluster(cluster, w=0, class_order=None,
         nL = (class_order == 0).sum()
         nH = (class_order == 1).sum()
 
-    assert nL + nH == N
+    assert nL + nH == N, (nL, nH, N)
+    assert nL * nH > 0
 
     n_probes = len(cluster)
 
     # choose a random probe from the set.
     # the values across the cluster will be determined
     # by the values in this randomly chose probe.
-    i = choice(range(n_probes))#[0] if n_probes > 1 else 0
+    #i = choice(range(n_probes))
+    #c = cluster[i]
+
+    # choose the probe with the highest variance from the set.
+    i = np.argmax([np.var(f.values) for f in cluster])
     c = cluster[i]
 
     idxs = np.arange(N)
@@ -118,14 +131,21 @@ def simulate_cluster(cluster, w=0, class_order=None,
     # just pull based on the index. so we need to sort the values
     # as well.
     idx_order = np.argsort(c.values)
+    p_values = scale(c.values)
 
-    # HI
-    ords = np.arange(1, N + 1) / (N + 1.0)
-    ords = (1.0 - ords)**w
-    h_idxs = choice(idxs, replace=False, p=ords/ords.sum(), size=nH)
-    h_idxs.sort()
+    # HI : TODO: instead of using ords, use weights of the actual
+    # methylation values
+    #ords = np.arange(1, N + 1) / (N + 1.0)
+    #ords = (1.0 - ords)**w
+    # sample with replacement to allow for stronger differences.
+    #h_idxs = choice(idxs, replace=True, p=ords/ords.sum(), size=nH)
+    #h_idxs.sort()
+    h_idxs = choice(idxs, replace=True, p=p_values, size=nH)
+    l_idxs = choice(idxs, replace=True, p=1 - p_values, size=nL)
 
-    # LO
+
+    """
+    # LO -without replacement
     l_idxs = np.setdiff1d(idxs, h_idxs, assume_unique=True)
     l_idxs.sort()
 
@@ -135,11 +155,18 @@ def simulate_cluster(cluster, w=0, class_order=None,
         assert l_ords.shape == l_idxs.shape
         l_ords = (l_ords)**w
         l_idxs = choice(l_idxs, replace=False, p=l_ords/l_ords.sum(), size=nL)
-
     assert len(np.intersect1d(h_idxs, l_idxs)) == 0
+    """
+
+    #l_ords = np.arange(1, N + 1) / (N + 1.0)
+    #l_ords = l_ords ** w
+    #l_idxs = choice(idxs, replace=True, p=l_ords/l_ords.sum(), size=nL)
+
     for j in range(n_probes):
-        tmph = np.array(cluster[j].values[idx_order][h_idxs])
-        tmpl = np.array(cluster[j].values[idx_order][l_idxs])
+        #tmpl = np.array(cluster[j].values[idx_order][l_idxs])
+        #tmph = np.array(cluster[j].values[idx_order][h_idxs])
+        tmpl = np.array(cluster[j].values[l_idxs])
+        tmph = np.array(cluster[j].values[h_idxs])
         cluster[j].values[class_order == 0] = tmpl
         cluster[j].values[class_order == 1] = tmph
         # add the shuffled residuals to the fitted values
@@ -148,12 +175,11 @@ def simulate_cluster(cluster, w=0, class_order=None,
             cluster[j].values += cluster[j].ovalues
 
         for attr in attrs:
-            vals = getattr(cluster[j], attr)[idx_order]
-            hi_vals = np.array(vals[idx_order][h_idxs])
-            lo_vals = np.array(vals[idx_order][l_idxs])
+            vals = getattr(cluster[j], attr)#[idx_order]
+            lo_vals = np.array(vals[l_idxs])
+            hi_vals = np.array(vals[h_idxs])
             vals[class_order == 0] = lo_vals
             vals[class_order == 1] = hi_vals
-
     return cluster
 
 
@@ -243,24 +269,14 @@ def simulate_regions(clust_list, region_fh, sizes=SIZES, class_order=None,
         # than we have in sizes
         if l in sim_idxs:
             s = seen[l]
-            """
-i          1/log(1+l)          2/(1+log(l))    1/(1+log(l))
-1          1.443               2.000           1.000
-2          0.910               1.181           0.591
-3          0.721               0.953           0.477
-4          0.621               0.838           0.419
-5          0.558               0.766           0.383
-6          0.514               0.716           0.358
-7          0.481               0.679           0.339
-8          0.455               0.649           0.325
-9          0.434               0.626           0.313
-10         0.417               0.606           0.303
-            """
             # denominator sets larger DMRs to have a smaller per-probe effect.
-            #w = int(s in sim_idxs[l]) / log(l + 1)
             #w = 2 * int(s in sim_idxs[l])
-            w = int(s in sim_idxs[l]) * 2 / (1 + log(l))
-            w = int(s in sim_idxs[l]) / (log(l + 1))
+            #w = int(s in sim_idxs[l]) / (log(l + 1))
+            #w = 2.0 * int(s in sim_idxs[l]) / (1 + log(l, 2))
+            #w = int(s in sim_idxs[l]) * 2 ** (1.0 / l)
+            #w = (3. * int(s in sim_idxs[l])) ** (1.0 / l)
+            w = 2 * int(s in sim_idxs[l]) / log(l * 2)
+
             seen[l] += 1
             if w > 0: changed[l] += 1
 
