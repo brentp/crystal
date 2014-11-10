@@ -39,7 +39,6 @@ def evaluate(bed_iter, regions, sizes=None, label='', ax=None, **plot_kwargs):
     ax : axis
 
     """
-    # TODO: implement size
 
     true_regions = defaultdict(InterLap)
     false_regions = defaultdict(InterLap)
@@ -113,12 +112,20 @@ def evaluate(bed_iter, regions, sizes=None, label='', ax=None, **plot_kwargs):
             truths.extend([0])
     #"""
     truths, ps = np.array(truths), np.array(ps)
+
+    # percent of nulls that had p < 0.05:
+
     if ax is None:
         return truths, ps
 
     fpr, tpr, _ = roc_curve(truths[~np.isnan(ps)], 1. - ps[~np.isnan(ps)])
     label = ("AUC: %.4f | " % auc(fpr, tpr)) + label
-    print label, len(truths)
+
+    nps = ps[truths == 0]
+    nlt = (nps < 0.05).sum()
+    fpr = "%% of expected nulls < 0.05: %.3f" % (float(nlt) / len(nps))
+
+    print label, len(truths), fpr
     ax.plot(fpr[1:], tpr[1:], label=label, **plot_kwargs)
     ax.set_xlabel('1 - specificity')
     ax.set_ylabel('sensitivity')
