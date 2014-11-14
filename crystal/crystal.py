@@ -42,11 +42,11 @@ def long_covs(covs, methylation, **kwargs):
 def corr(methylations):
     if len(methylations) == 0: return np.nan
     if len(methylations) == 1: return [[1]]
-    c = np.abs(ss.spearmanr(methylations.T))
-    if len(c.shape) == 1:
+    c = np.abs(ss.spearmanr(methylations.T)[0])
+    if c.shape == ():
         assert len(methylations) == 2
-        return np.array([[1, c[0]], [c[0], 1]])
-    return c[0]
+        return np.array([[1, c], [c, 1]])
+    return c
 
 def get_ptc(fit, coef):
     if isinstance(fit, list):
@@ -196,7 +196,7 @@ def mixed_model_cluster(formula, cluster, covs, coef):
 def zscore_combine(pvals, sigma, mid=np.mean):
     if np.all(np.isnan(sigma)): return np.nan
     pvals[pvals == 1] = 1.0 - 9e-16
-    z, L = mid(norm.isf(pvals)), len(pvals)
+    z, L = norm.isf(mid(pvals)), len(pvals)
     sz = 1.0 / L * np.sqrt(L + 2 * np.tril(sigma, k=-1).sum())
     return norm.sf(z / sz)
 
@@ -209,12 +209,13 @@ def _combine_cluster(formula, methylations, covs, coef, method,
             for methylation in methylations]
     idx = [i for i, par in enumerate(res[0].model.exog_names)
                    if par.startswith(coef)][0]
-    pvals = np.array([r.pvalues[idx] for r in res], dtype=np.float64)
-    pvals[pvals == 1] = 1.0 - 9e-16
+    pvals = np.minimum(1.0 - 9e-16, [r.pvalues[idx] for r in res if not
+                        np.isnan(r.pvalues[idx])])
+
     res = dict(t=np.array([r.tvalues[idx] for r in res]),
                coef=np.array([r.params[idx] for r in res]),
                covar=res[0].model.exog_names[idx],
-               p=pvals[~np.isnan(pvals)])
+               p=pvals)
     # save some time for bumphunting where we don't need
     # the correlation.
     if _corr:

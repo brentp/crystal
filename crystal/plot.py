@@ -21,6 +21,7 @@ def logit(a): return np.log(a / (1 - a))
 def ilogit(m): return 1.0 / (1 + np.exp(-m))
 
 sns.set(style="white", context="talk")
+sns.set_palette('Set1', 10)
 colors = sns.color_palette("Set1", 8)
 
 def _plot_continuous(feature, var, ax):

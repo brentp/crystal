@@ -1,9 +1,11 @@
 from collections import defaultdict
-from .crystal import model_clusters
 from interlap import InterLap
 import toolshed as ts
 import itertools as it
 import seaborn as sns
+sns.set(style="white", context="talk")
+colors = sns.color_palette("Set1", 8)
+
 import pandas as pd
 import numpy as np
 import sys
@@ -67,11 +69,10 @@ def evaluate(bed_iter, regions, sizes=None, label='', ax=None, **plot_kwargs):
     no_false = len(false_regions) == 0
     if no_false: assert sizes is None, ('cant have sizes without false regions')
 
-    truths = []
-    ps = []
+    ps, truths = [], []
     for b in bed_iter:
         chrom, start, end, p, n_sites = b[:5]
-        assert isinstance(b[1], int)
+        assert isinstance(start, int)
         n_true = is_in(b, true_regions, seen_true)
         # also keep track of which false regions have been seen
         if no_false:
@@ -83,23 +84,20 @@ def evaluate(bed_iter, regions, sizes=None, label='', ax=None, **plot_kwargs):
         # here, we multiply because each region can overlap multiple sites
         truths.extend([1] * n_true)
         truths.extend([0] * n_false)
+
         ps.extend([p] * (n_true + n_false))
 
-
-    # now we need to add in the missed trues and missed falses.
+    # add in the missed trues and missed falses.
     #"""
-    one = 1 - 1e-16
+    one = 1.0 - 1e-16
     for chrom in true_regions:
         regs = set(true_regions[chrom])
         seen = seen_true[chrom]
         assert not seen - regs
         missed = regs - seen
-        for s, e in missed:
-            # add a p-value of 1 for missed regions
-            # do not multiply by length because we have a row for each site in each
-            # region already.
-            ps.extend([one])
-            truths.extend([1])
+        # add a p-value of 1 for missed regions
+        ps.extend([one] * len(missed))
+        truths.extend([1] * len(missed))
 
     # blah code duplication.
     for chrom in false_regions:
@@ -107,33 +105,30 @@ def evaluate(bed_iter, regions, sizes=None, label='', ax=None, **plot_kwargs):
         seen = seen_false[chrom]
         assert not seen - regs
         missed = regs - seen
-        for s, e in missed:
-            ps.extend([one])
-            truths.extend([0])
+
+        ps.extend([one] * len(missed))
+        truths.extend([0] * len(missed))
     #"""
     truths, ps = np.array(truths), np.array(ps)
-
-    # percent of nulls that had p < 0.05:
 
     if ax is None:
         return truths, ps
 
-    fpr, tpr, _ = roc_curve(truths[~np.isnan(ps)], 1. - ps[~np.isnan(ps)])
-    label = ("AUC: %.4f | " % auc(fpr, tpr)) + label
+    from sklearn.metrics import classification_report, precision_recall_curve, roc_curve
+    subset = ~np.isnan(ps)
+    precision, recall, _ = precision_recall_curve(truths[subset], 1.0 - ps[subset])
+    fpr, tpr, _ = roc_curve(truths[subset], 1.0 - ps[subset])
 
-    nps = ps[truths == 0]
-    nlt = (nps < 0.05).sum()
-    fpr = "%% of expected nulls < 0.05: %.3f" % (float(nlt) / len(nps))
-
-    print label, len(truths), fpr
-    ax.plot(fpr[1:], tpr[1:], label=label, **plot_kwargs)
-    ax.set_xlabel('1 - specificity')
-    ax.set_ylabel('sensitivity')
+    print label, len(truths)
+    ax.plot(recall, precision, label=label, **plot_kwargs)
+    #ax.plot(fpr, tpr, label=label, **plot_kwargs)
+    #ax.set_xlabel('recall')
+    #ax.set_ylabel('precision')
     return truths, ps
 
 def write_region_bed(feature_iter, true_regions, out_fh):
     """
-    Write a region bed file suitable for use in :func:`~evaluate_modeled_regions`.
+    Write a region bed file suitable for use in :func:`~evaluate`.
     given true regions (likely from an external program, otherwise use
     :func:`~write_modeled_regions`).
 
@@ -164,75 +159,6 @@ def write_region_bed(feature_iter, true_regions, out_fh):
         out_fh.write(fmt.format(chrom=f.chrom, start=f.position - 1,
                     end=f.position, truth=truth, size=1))
     out_fh.flush()
-
-def plot_roc(ax, r, plot_kwargs={}):
-    """
-    Plot ROC for a given result.
-
-    Parameters
-    ----------
-
-    ax: matplotlib axis
-
-    r: dict
-        return value from :func:`~evaluate_method`
-    """
-    t, f = r['true-ps'], r['null-ps']
-    t, f = t[~np.isnan(t)], f[~np.isnan(f)]
-    truth = np.array([1] * len(t) + [0] * len(f))
-    ps = np.concatenate((t, f))
-    vals = 1 - ps
-    fpr, tpr, _ = roc_curve(truth, vals)
-    label = ("AUC: %.4f | " % auc(fpr, tpr)) + r['label']
-    ax.plot(fpr[1:], tpr[1:], label=label, **plot_kwargs)
-    ax.set_xlabel('1 - specificity')
-    ax.set_ylabel('sensitivity')
-
-def plot_pvalue_grid(results):
-    from matplotlib import pyplot as plt
-    # http://web.stanford.edu/~mwaskom/software/seaborn/tutorial/axis_grids.html
-    grid = np.array([r['null-ps'] for r in results]).T
-    grid = pd.DataFrame(grid, columns=[r.get('label', r['method']) for r in results])
-
-    g = sns.PairGrid(grid, diag_sharey=True)#, hue='truth')
-
-    #g.map_diag(plt.hist)
-    g.map_offdiag(lambda x, y, *args, **kwargs: plt.scatter(-np.log10(x),
-                                                            -np.log10(y), *args, **kwargs))
-    return g
-
-
-def plot_times(ax, results, labels, colors=None):
-    """
-    Plot the times taken for each result in results
-    from :func:`evalute_method`
-
-    Parameters
-    ----------
-
-    ax: matplotlib axis
-
-    results: list of list of dict
-        list of return values from :func:`~model_clusters`
-
-    colors: list
-        list of colors for matplotlib
-
-    """
-
-    if colors is None:
-        colors = sns.color_palette("Set1", len(results))
-
-    tmax = int(0.5 + np.log10(1 + max(float(u['time']) for m in results for u in m) / 60.))
-    for i, m in enumerate(results):
-        t = sum(u['time'] for u in m) / 60.
-        s = ax.bar(i + 0.08, height=np.log10(1 + t), width=0.85, fc=colors[i],
-                        label=labels[i] + ' - %.1f min.' % t)
-    ax.legend(loc="best")
-
-    ax.set_yticklabels(["%i" % (10**i) for i in range(tmax)])
-    ax.set_title('CPU time (minutes)')
-    ax.set_xticks([])
 
 def write_modeled_regions(modeled_clusters, p_cutoff, out_fh):
     """
